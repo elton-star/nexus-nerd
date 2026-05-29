@@ -17,6 +17,7 @@ export type Post = {
   category: CategorySlug;
   cover: string;
   gallery?: string[];
+  affiliateLink?: string;
   author: string;
   date: string;
   readTime: string;

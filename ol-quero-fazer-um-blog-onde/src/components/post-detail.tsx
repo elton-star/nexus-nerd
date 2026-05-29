@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
-import { Heart, MessageCircle, Share2, Timer } from "lucide-react";
+import { ExternalLink, Heart, MessageCircle, Share2, Timer } from "lucide-react";
 import type { Comment, Post } from "@/types";
 import { comments as seedComments } from "@/lib/posts";
 import { getCategory } from "@/lib/categories";
@@ -73,26 +73,40 @@ export function PostDetail({ post }: { post: Post }) {
             <p>{post.content}</p>
             {post.gallery?.length ? (
               <div className="not-prose my-8 grid gap-4">
-                <div
-                  className="min-h-[320px] rounded-lg border border-white/10 bg-cover bg-center shadow-2xl"
-                  style={{
-                    backgroundImage: `linear-gradient(180deg, rgba(5,2,10,.05), rgba(5,2,10,.34)), url(${post.gallery[0]})`
-                  }}
+                <img
+                  src={post.gallery[0]}
+                  alt={`Imagem principal de ${post.title}`}
+                  className="h-auto max-h-[680px] w-full rounded-lg border border-white/10 object-cover shadow-2xl"
+                  loading="eager"
                 />
                 {post.gallery.length > 1 ? (
                   <div className="grid gap-4 sm:grid-cols-2">
                     {post.gallery.slice(1).map((image, index) => (
-                      <div
+                      <img
                         key={image}
-                        className="min-h-[220px] rounded-lg border border-white/10 bg-cover bg-center"
-                        style={{
-                          backgroundImage: `linear-gradient(180deg, rgba(5,2,10,.04), rgba(5,2,10,.28)), url(${image})`
-                        }}
-                        aria-label={`Imagem extra ${index + 2} do artigo`}
+                        src={image}
+                        alt={`Imagem extra ${index + 2} de ${post.title}`}
+                        className="h-auto max-h-[420px] w-full rounded-lg border border-white/10 object-cover"
+                        loading="lazy"
                       />
                     ))}
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+            {post.affiliateLink ? (
+              <div className="not-prose my-8 rounded-lg border border-nexus-400/24 bg-nexus-500/12 p-5">
+                <p className="mb-4 text-sm font-semibold leading-6 text-white/70">
+                  Produto citado no artigo disponível pelo link de afiliado Nexus.
+                </p>
+                <a
+                  href={post.affiliateLink}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-nexus-500 px-5 text-sm font-black text-white shadow-glow transition hover:bg-nexus-400"
+                >
+                  Ver produto <ExternalLink size={17} />
+                </a>
               </div>
             ) : null}
             <p>

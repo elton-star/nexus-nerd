@@ -13,6 +13,7 @@ const emptyDraft = {
   category: "noticias" as CategorySlug,
   cover: "https://images.unsplash.com/photo-1608889476561-6242cfdbf622?auto=format&fit=crop&w=1600&q=80",
   gallery: "",
+  affiliateLink: "",
   content: ""
 };
 
@@ -45,7 +46,8 @@ export default function AdminPage() {
         gallery: draft.gallery
           .split("\n")
           .map((image) => image.trim())
-          .filter(Boolean)
+          .filter(Boolean),
+        affiliateLink: draft.affiliateLink.trim() || undefined
       });
     } else {
       const created: Post = {
@@ -60,6 +62,7 @@ export default function AdminPage() {
                   .split("\n")
                   .map((image) => image.trim())
                   .filter(Boolean),
+                affiliateLink: draft.affiliateLink.trim() || undefined,
                 author: user?.name ?? "Editor Nexus",
         date: new Date().toISOString().slice(0, 10),
         readTime: "4 min",
@@ -82,6 +85,7 @@ export default function AdminPage() {
       category: post.category,
       cover: post.cover,
       gallery: post.gallery?.join("\n") ?? "",
+      affiliateLink: post.affiliateLink ?? "",
       content: post.content
     });
   }
@@ -159,8 +163,14 @@ export default function AdminPage() {
             <textarea
               value={draft.gallery}
               onChange={(event) => setDraft((current) => ({ ...current, gallery: event.target.value }))}
-              placeholder="Imagens internas do post: cole uma URL por linha"
+              placeholder="Imagens internas em alta qualidade: cole uma URL por linha"
               className="min-h-28 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
+            />
+            <input
+              value={draft.affiliateLink}
+              onChange={(event) => setDraft((current) => ({ ...current, affiliateLink: event.target.value }))}
+              placeholder="Link de afiliado do produto"
+              className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <textarea
               value={draft.content}
