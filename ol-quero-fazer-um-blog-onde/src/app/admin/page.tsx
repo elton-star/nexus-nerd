@@ -176,7 +176,7 @@ export default function AdminPage() {
               value={draft.content}
               onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
               required
-              placeholder="Conteúdo"
+              placeholder="Conteúdo do post: escreva em linhas/parágrafos. A cada 13 linhas, uma imagem interna será inserida automaticamente."
               className="min-h-32 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <button className="rounded-md bg-nexus-500 px-5 py-3 text-sm font-black transition hover:bg-nexus-400">

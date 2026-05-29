@@ -15,6 +15,7 @@ export function PostDetail({ post }: { post: Post }) {
   const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === post.slug));
   const category = getCategory(post.category);
   const { posts } = usePosts();
+  const articleLines = buildArticleLines(post.content);
 
   const related = useMemo(
     () => posts.filter((candidate) => candidate.category === post.category && candidate.id !== post.id),
@@ -70,30 +71,18 @@ export function PostDetail({ post }: { post: Post }) {
 
         <section className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_220px] lg:px-8">
           <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
-            <p>{post.content}</p>
-            {post.gallery?.length ? (
-              <div className="not-prose my-8 grid gap-4">
-                <img
-                  src={post.gallery[0]}
-                  alt={`Imagem principal de ${post.title}`}
-                  className="h-auto max-h-[680px] w-full rounded-lg border border-white/10 object-cover shadow-2xl"
-                  loading="eager"
-                />
-                {post.gallery.length > 1 ? (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {post.gallery.slice(1).map((image, index) => (
-                      <img
-                        key={image}
-                        src={image}
-                        alt={`Imagem extra ${index + 2} de ${post.title}`}
-                        className="h-auto max-h-[420px] w-full rounded-lg border border-white/10 object-cover"
-                        loading="lazy"
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+            {articleLines.map((line, index) => (
+              <ArticleLineBlock
+                key={`${line}-${index}`}
+                line={line}
+                index={index}
+                image={post.gallery?.[Math.floor((index + 1) / 13) - 1]}
+                title={post.title}
+              />
+            ))}
+            {post.gallery?.slice(Math.floor(articleLines.length / 13)).map((image, index) => (
+              <ArticleImage key={image} image={image} title={post.title} index={index + Math.floor(articleLines.length / 13)} />
+            ))}
             {post.affiliateLink ? (
               <div className="not-prose my-8 rounded-lg border border-nexus-400/24 bg-nexus-500/12 p-5">
                 <p className="mb-4 text-sm font-semibold leading-6 text-white/70">
@@ -173,5 +162,55 @@ export function PostDetail({ post }: { post: Post }) {
 
       {related.length ? <ContentRow title="Relacionados" posts={related} /> : null}
     </>
+  );
+}
+
+function buildArticleLines(content: string) {
+  const manualLines = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (manualLines.length > 1) {
+    return manualLines;
+  }
+
+  return content
+    .split(/(?<=[.!?])\s+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function ArticleLineBlock({
+  line,
+  index,
+  image,
+  title
+}: {
+  line: string;
+  index: number;
+  image?: string;
+  title: string;
+}) {
+  const shouldShowImage = Boolean(image) && (index + 1) % 13 === 0;
+
+  return (
+    <>
+      <p>{line}</p>
+      {shouldShowImage ? <ArticleImage image={image} title={title} index={Math.floor(index / 13)} /> : null}
+    </>
+  );
+}
+
+function ArticleImage({ image, title, index }: { image: string; title: string; index: number }) {
+  return (
+    <div className="not-prose my-8">
+      <img
+        src={image}
+        alt={`Imagem interna ${index + 1} de ${title}`}
+        className="h-auto max-h-[680px] w-full rounded-lg border border-white/10 object-cover shadow-2xl"
+        loading={index === 0 ? "eager" : "lazy"}
+      />
+    </div>
   );
 }
