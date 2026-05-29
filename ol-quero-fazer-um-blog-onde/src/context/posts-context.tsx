@@ -45,6 +45,18 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    function syncPosts(event: StorageEvent) {
+      if (event.key === storageKey && event.newValue) {
+        setPosts(normalizeSavedPosts(JSON.parse(event.newValue) as Post[]));
+      }
+    }
+
+    window.addEventListener("storage", syncPosts);
+
+    return () => window.removeEventListener("storage", syncPosts);
+  }, []);
+
+  useEffect(() => {
     if (hydrated) {
       window.localStorage.setItem(storageKey, JSON.stringify(posts));
     }

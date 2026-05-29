@@ -1,41 +1,31 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
-import { getCategory, categories } from "@/lib/categories";
-import { getPostsByCategory } from "@/lib/posts";
+import { getCategory } from "@/lib/categories";
+import { usePosts } from "@/context/posts-context";
 
-type CategoryPageProps = {
-  params: Promise<{ category: string }>;
-};
-
-export function generateStaticParams() {
-  return categories.map((category) => ({ category: category.slug }));
-}
-
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const { category: slug } = await params;
-  const category = getCategory(slug);
+export default function CategoryPage() {
+  const params = useParams<{ category: string }>();
+  const category = getCategory(params.category);
+  const { posts } = usePosts();
 
   if (!category) {
-    return {};
+    return (
+      <div className="mx-auto grid min-h-screen max-w-3xl place-items-center px-4 py-16 text-center sm:px-6 lg:px-8">
+        <div className="glass rounded-lg p-7">
+          <h1 className="text-4xl font-black">Categoria não encontrada</h1>
+          <Link className="mt-6 inline-flex rounded-md bg-nexus-500 px-5 py-3 text-sm font-black" href="/">
+            Voltar para Home
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  return {
-    title: category.label,
-    description: category.description
-  };
-}
-
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { category: slug } = await params;
-  const category = getCategory(slug);
-
-  if (!category) {
-    notFound();
-  }
-
-  const categoryPosts = getPostsByCategory(slug);
+  const categoryPosts = posts.filter((post) => post.category === params.category);
 
   return (
     <div className="min-h-screen">
@@ -49,11 +39,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <SectionHeading title={`Tudo sobre ${category.label}`} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {categoryPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
-        </div>
+        {categoryPosts.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categoryPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-white/10 bg-white/6 p-6 text-white/58">
+            Nenhum post publicado nesta categoria ainda.
+          </div>
+        )}
       </section>
     </div>
   );

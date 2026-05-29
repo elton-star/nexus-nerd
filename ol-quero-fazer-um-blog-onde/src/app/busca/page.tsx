@@ -4,11 +4,23 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
-import { searchPosts } from "@/lib/posts";
+import { usePosts } from "@/context/posts-context";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => searchPosts(query), [query]);
+  const { posts } = usePosts();
+  const results = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+
+    if (!normalized) {
+      return posts;
+    }
+
+    return posts.filter((post) => {
+      const searchable = [post.title, post.excerpt, post.category, post.author, ...post.tags].join(" ").toLowerCase();
+      return searchable.includes(normalized);
+    });
+  }, [posts, query]);
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
