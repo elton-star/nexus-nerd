@@ -12,7 +12,7 @@ const emptyDraft = {
   excerpt: "",
   category: "noticias" as CategorySlug,
   cover: "https://images.unsplash.com/photo-1608889476561-6242cfdbf622?auto=format&fit=crop&w=1600&q=80",
-  gallery: "",
+  gallery: [] as string[],
   affiliateLink: "",
   content: ""
 };
@@ -44,7 +44,6 @@ export default function AdminPage() {
         category: draft.category,
         cover: draft.cover,
         gallery: draft.gallery
-          .split("\n")
           .map((image) => image.trim())
           .filter(Boolean),
         affiliateLink: draft.affiliateLink.trim() || undefined
@@ -59,7 +58,6 @@ export default function AdminPage() {
                 category: draft.category,
                 cover: draft.cover,
                 gallery: draft.gallery
-                  .split("\n")
                   .map((image) => image.trim())
                   .filter(Boolean),
                 affiliateLink: draft.affiliateLink.trim() || undefined,
@@ -84,10 +82,31 @@ export default function AdminPage() {
       excerpt: post.excerpt,
       category: post.category,
       cover: post.cover,
-      gallery: post.gallery?.join("\n") ?? "",
+      gallery: post.gallery ?? [],
       affiliateLink: post.affiliateLink ?? "",
       content: post.content
     });
+  }
+
+  function addInternalImage() {
+    setDraft((current) => ({
+      ...current,
+      gallery: [...current.gallery, ""]
+    }));
+  }
+
+  function updateInternalImage(index: number, value: string) {
+    setDraft((current) => ({
+      ...current,
+      gallery: current.gallery.map((image, imageIndex) => (imageIndex === index ? value : image))
+    }));
+  }
+
+  function removeInternalImage(index: number) {
+    setDraft((current) => ({
+      ...current,
+      gallery: current.gallery.filter((_, imageIndex) => imageIndex !== index)
+    }));
   }
 
   if (!user || user.role !== "admin") {
@@ -160,12 +179,6 @@ export default function AdminPage() {
               placeholder="URL da imagem"
               className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
-            <textarea
-              value={draft.gallery}
-              onChange={(event) => setDraft((current) => ({ ...current, gallery: event.target.value }))}
-              placeholder="Imagens internas em alta qualidade: cole uma URL por linha"
-              className="min-h-28 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
-            />
             <input
               value={draft.affiliateLink}
               onChange={(event) => setDraft((current) => ({ ...current, affiliateLink: event.target.value }))}
@@ -179,6 +192,49 @@ export default function AdminPage() {
               placeholder="Conteúdo do post: escreva em linhas/parágrafos. A cada 13 linhas, uma imagem interna será inserida automaticamente."
               className="min-h-32 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
+            <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-white">Imagens internas do conteúdo</p>
+                  <p className="mt-1 text-xs leading-5 text-white/44">
+                    A imagem 1 entra depois do primeiro bloco de 13 linhas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addInternalImage}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-md bg-nexus-500 px-3 text-xs font-black transition hover:bg-nexus-400"
+                >
+                  <Plus size={15} /> Adicionar
+                </button>
+              </div>
+              <div className="grid gap-3">
+                {draft.gallery.length ? (
+                  draft.gallery.map((image, index) => (
+                    <div key={index} className="grid gap-2 sm:grid-cols-[1fr_40px]">
+                      <input
+                        value={image}
+                        onChange={(event) => updateInternalImage(index, event.target.value)}
+                        placeholder={`URL da imagem interna ${index + 1}`}
+                        className="min-h-11 rounded-md border border-white/10 bg-black/30 px-3 text-sm outline-none placeholder:text-white/32 focus:border-nexus-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeInternalImage(index)}
+                        className="grid h-11 place-items-center rounded-md bg-red-500/18 text-red-200 hover:bg-red-500/28"
+                        aria-label="Remover imagem interna"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-md border border-dashed border-white/12 p-3 text-xs leading-5 text-white/42">
+                    Nenhuma imagem interna adicionada.
+                  </p>
+                )}
+              </div>
+            </div>
             <button className="rounded-md bg-nexus-500 px-5 py-3 text-sm font-black transition hover:bg-nexus-400">
               {editingId ? "Salvar alterações" : "Publicar"}
             </button>
