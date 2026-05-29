@@ -3,9 +3,9 @@
 import { FormEvent, useMemo, useState } from "react";
 import { BarChart3, Edit3, ImagePlus, MessageSquare, Plus, Trash2, Users } from "lucide-react";
 import { categories } from "@/lib/categories";
-import { posts as seedPosts } from "@/lib/posts";
 import type { CategorySlug, Post, UserRole } from "@/types";
 import { useAuth } from "@/context/auth-context";
+import { usePosts } from "@/context/posts-context";
 
 const emptyDraft = {
   title: "",
@@ -18,7 +18,7 @@ const emptyDraft = {
 
 export default function AdminPage() {
   const { user, users, updateRole } = useAuth();
-  const [posts, setPosts] = useState<Post[]>(seedPosts);
+  const { posts, createPost, updatePost, deletePost } = usePosts();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState(emptyDraft);
 
@@ -36,25 +36,18 @@ export default function AdminPage() {
     event.preventDefault();
 
     if (editingId) {
-      setPosts((current) =>
-        current.map((post) =>
-          post.id === editingId
-            ? {
-                ...post,
-                title: draft.title,
-                excerpt: draft.excerpt,
-                content: draft.content,
-                category: draft.category,
-                cover: draft.cover,
-                gallery: draft.gallery
-                  .split("\n")
-                  .map((image) => image.trim())
-                  .filter(Boolean),
-                slug: draft.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
-              }
-            : post
-        )
-      );
+      updatePost(editingId, {
+        title: draft.title,
+        excerpt: draft.excerpt,
+        content: draft.content,
+        category: draft.category,
+        cover: draft.cover,
+        gallery: draft.gallery
+          .split("\n")
+          .map((image) => image.trim())
+          .filter(Boolean),
+        slug: draft.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      });
     } else {
       const created: Post = {
         id: crypto.randomUUID(),
@@ -75,7 +68,7 @@ export default function AdminPage() {
         comments: 0,
         tags: [draft.category]
       };
-      setPosts((current) => [created, ...current]);
+      createPost(created);
     }
 
     setEditingId(null);
@@ -202,7 +195,7 @@ export default function AdminPage() {
                       <Edit3 size={16} />
                     </button>
                     <button
-                      onClick={() => setPosts((current) => current.filter((candidate) => candidate.id !== post.id))}
+                      onClick={() => deletePost(post.id)}
                       className="grid h-10 w-10 place-items-center rounded-md bg-red-500/18 text-red-200 hover:bg-red-500/28"
                       aria-label="Excluir"
                     >

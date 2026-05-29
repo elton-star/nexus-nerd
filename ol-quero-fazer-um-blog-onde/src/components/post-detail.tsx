@@ -4,15 +4,17 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { Heart, MessageCircle, Share2, Timer } from "lucide-react";
 import type { Comment, Post } from "@/types";
-import { comments as seedComments, posts } from "@/lib/posts";
+import { comments as seedComments } from "@/lib/posts";
 import { getCategory } from "@/lib/categories";
 import { ContentRow } from "@/components/content-row";
+import { usePosts } from "@/context/posts-context";
 
 export function PostDetail({ post }: { post: Post }) {
   const [likes, setLikes] = useState(post.likes);
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === post.slug));
   const category = getCategory(post.category);
+  const { posts } = usePosts();
 
   const related = useMemo(
     () => posts.filter((candidate) => candidate.category === post.category && candidate.id !== post.id),

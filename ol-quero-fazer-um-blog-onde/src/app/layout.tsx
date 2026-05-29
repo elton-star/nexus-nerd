@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
+import { PostsProvider } from "@/context/posts-context";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -31,9 +32,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR">
       <body className={`${inter.variable} bg-radial-grid text-white antialiased`}>
         <AuthProvider>
-          <SiteHeader />
-          <main>{children}</main>
-          <SiteFooter />
+          <PostsProvider>
+            <SiteHeader />
+            <main>{children}</main>
+            <SiteFooter />
+          </PostsProvider>
         </AuthProvider>
       </body>
     </html>
