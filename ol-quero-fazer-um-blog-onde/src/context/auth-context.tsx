@@ -1,71 +1,160 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { NexusUser, UserRole } from "@/types";
+
+type StoredUser = NexusUser & {
+  password: string;
+};
+
+type AuthResult = {
+  ok: boolean;
+  message: string;
+};
 
 type AuthContextValue = {
   user: NexusUser | null;
   users: NexusUser[];
-  login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (name: string, email: string, password: string, confirmPassword: string) => Promise<AuthResult>;
+  loginWithGoogle: () => Promise<AuthResult>;
   logout: () => void;
   updateRole: (id: string, role: UserRole) => void;
 };
 
-const demoUsers: NexusUser[] = [
-  {
-    id: "u1",
-    name: "Admin Nexus",
-    email: "admin@nexusnerd.com",
-    role: "admin",
-    avatar: "AN"
-  },
-  {
-    id: "u2",
-    name: "Membro Prime",
-    email: "membro@nexusnerd.com",
-    role: "member",
-    avatar: "MP"
-  }
-];
-
 const AuthContext = createContext<AuthContextValue | null>(null);
+const storageKey = "nexus-nerd-users";
+
+function getAvatar(name: string) {
+  return name
+    .split(" ")
+    .map((piece) => piece[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function withoutPassword(user: StoredUser): NexusUser {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<NexusUser[]>(demoUsers);
-  const [user, setUser] = useState<NexusUser | null>(demoUsers[0]);
+  const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]);
+  const [user, setUser] = useState<NexusUser | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const users = useMemo(() => storedUsers.map(withoutPassword), [storedUsers]);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(storageKey);
+
+    if (saved) {
+      setStoredUsers(JSON.parse(saved) as StoredUser[]);
+    }
+
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated) {
+      window.localStorage.setItem(storageKey, JSON.stringify(storedUsers));
+    }
+  }, [hydrated, storedUsers]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       users,
-      login: (email: string) => {
-        const existing = users.find((candidate) => candidate.email.toLowerCase() === email.toLowerCase());
-        setUser(existing ?? users[0]);
+      login: async (email: string, password: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        const existing = storedUsers.find((candidate) => candidate.email.toLowerCase() === email.toLowerCase());
+
+        if (!existing || existing.password !== password) {
+          return {
+            ok: false,
+            message: "Email ou senha inválidos."
+          };
+        }
+
+        setUser(withoutPassword(existing));
+
+        return {
+          ok: true,
+          message: "Login realizado com sucesso."
+        };
       },
-      register: (name: string, email: string) => {
-        const created: NexusUser = {
+      register: async (name: string, email: string, password: string, confirmPassword: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 650));
+
+        if (password.length < 6) {
+          return {
+            ok: false,
+            message: "A senha precisa ter pelo menos 6 caracteres."
+          };
+        }
+
+        if (password !== confirmPassword) {
+          return {
+            ok: false,
+            message: "As senhas não conferem."
+          };
+        }
+
+        if (storedUsers.some((candidate) => candidate.email.toLowerCase() === email.toLowerCase())) {
+          return {
+            ok: false,
+            message: "Já existe uma conta com esse email."
+          };
+        }
+
+        const created: StoredUser = {
           id: crypto.randomUUID(),
           name,
           email,
-          role: "member",
-          avatar: name
-            .split(" ")
-            .map((piece) => piece[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()
+          password,
+          role: storedUsers.length === 0 ? "admin" : "member",
+          avatar: getAvatar(name)
         };
-        setUsers((current) => [created, ...current]);
-        setUser(created);
+        setStoredUsers((current) => [created, ...current]);
+        setUser(withoutPassword(created));
+
+        return {
+          ok: true,
+          message: "Conta criada com sucesso."
+        };
+      },
+      loginWithGoogle: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        const googleEmail = "google-user@nexusnerd.com";
+        const existing = storedUsers.find((candidate) => candidate.email === googleEmail);
+
+        if (existing) {
+          setUser(withoutPassword(existing));
+        } else {
+          const created: StoredUser = {
+            id: crypto.randomUUID(),
+            name: "Nexus Google",
+            email: googleEmail,
+            password: crypto.randomUUID(),
+            role: storedUsers.length === 0 ? "admin" : "member",
+            avatar: "NG"
+          };
+          setStoredUsers((current) => [created, ...current]);
+          setUser(withoutPassword(created));
+        }
+
+        return {
+          ok: true,
+          message: "Conta Google conectada."
+        };
       },
       logout: () => setUser(null),
       updateRole: (id: string, role: UserRole) => {
-        setUsers((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, role } : candidate)));
+        setStoredUsers((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, role } : candidate)));
         setUser((current) => (current?.id === id ? { ...current, role } : current));
       }
     }),
-    [user, users]
+    [storedUsers, user, users]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
