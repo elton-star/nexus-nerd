@@ -10,6 +10,7 @@ type PostsContextValue = {
   createPost: (post: Post) => Promise<void>;
   updatePost: (id: string, post: Partial<Post>) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
+  migrateLocalPostsToSupabase: () => Promise<{ ok: boolean; message: string; migrated: number; skipped: number }>;
   getPostBySlug: (slug: string) => Post | undefined;
 };
 
@@ -180,6 +181,75 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
             console.error("Could not delete post from Supabase", error);
           }
         }
+      },
+      migrateLocalPostsToSupabase: async () => {
+        if (!supabase) {
+          return {
+            ok: false,
+            message: "Configure o Supabase antes de migrar os posts antigos.",
+            migrated: 0,
+            skipped: 0
+          };
+        }
+
+        const saved = window.localStorage.getItem(storageKey);
+
+        if (!saved) {
+          return {
+            ok: true,
+            message: "Nenhum post antigo encontrado no navegador.",
+            migrated: 0,
+            skipped: 0
+          };
+        }
+
+        const localPosts = normalizeSavedPosts(JSON.parse(saved) as Post[]);
+        const { data: existingRows, error: readError } = await supabase.from("posts").select("slug");
+
+        if (readError) {
+          return {
+            ok: false,
+            message: "Não foi possível consultar os posts do Supabase.",
+            migrated: 0,
+            skipped: 0
+          };
+        }
+
+        const existingSlugs = new Set((existingRows ?? []).map((row) => row.slug as string));
+        const postsToMigrate = localPosts.filter((post) => !existingSlugs.has(post.slug));
+        const skipped = localPosts.length - postsToMigrate.length;
+
+        if (!postsToMigrate.length) {
+          return {
+            ok: true,
+            message: "Todos os posts antigos já existem no Supabase.",
+            migrated: 0,
+            skipped
+          };
+        }
+
+        const { error: insertError } = await supabase.from("posts").insert(postsToMigrate.map(toSupabase));
+
+        if (insertError) {
+          return {
+            ok: false,
+            message: "Não foi possível enviar os posts antigos para o Supabase.",
+            migrated: 0,
+            skipped
+          };
+        }
+
+        setPosts((current) => {
+          const currentSlugs = new Set(current.map((post) => post.slug));
+          return [...postsToMigrate.filter((post) => !currentSlugs.has(post.slug)), ...current];
+        });
+
+        return {
+          ok: true,
+          message: `${postsToMigrate.length} post(s) migrado(s). ${skipped} duplicado(s) ignorado(s).`,
+          migrated: postsToMigrate.length,
+          skipped
+        };
       },
       getPostBySlug: (slug: string) => posts.find((post) => post.slug === slug)
     }),

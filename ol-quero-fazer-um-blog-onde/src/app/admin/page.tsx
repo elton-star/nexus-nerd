@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { BarChart3, Edit3, ImagePlus, MessageSquare, Plus, Trash2, Users } from "lucide-react";
+import { BarChart3, Edit3, ImagePlus, MessageSquare, Plus, Trash2, UploadCloud, Users } from "lucide-react";
 import { categories } from "@/lib/categories";
 import type { CategorySlug, Post, UserRole } from "@/types";
 import { useAuth } from "@/context/auth-context";
@@ -19,9 +19,12 @@ const emptyDraft = {
 
 export default function AdminPage() {
   const { user, users, updateRole } = useAuth();
-  const { posts, createPost, updatePost, deletePost } = usePosts();
+  const { posts, createPost, updatePost, deletePost, migrateLocalPostsToSupabase } = usePosts();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState(emptyDraft);
+  const [migrationStatus, setMigrationStatus] = useState("");
+  const [migrationType, setMigrationType] = useState<"success" | "error">("success");
+  const [migrationLoading, setMigrationLoading] = useState(false);
 
   const stats = useMemo(
     () => [
@@ -109,6 +112,17 @@ export default function AdminPage() {
     }));
   }
 
+  async function migrateOldPosts() {
+    setMigrationLoading(true);
+    setMigrationStatus("");
+
+    const result = await migrateLocalPostsToSupabase();
+
+    setMigrationLoading(false);
+    setMigrationType(result.ok ? "success" : "error");
+    setMigrationStatus(result.message);
+  }
+
   if (!user || user.role !== "admin") {
     return (
       <div className="mx-auto min-h-screen max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8">
@@ -138,6 +152,36 @@ export default function AdminPage() {
             <strong className="mt-1 block text-3xl">{stat.value.toLocaleString("pt-BR")}</strong>
           </div>
         ))}
+      </section>
+
+      <section className="mt-6 rounded-lg border border-white/10 bg-white/6 p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-black">Migrar posts antigos</h2>
+            <p className="mt-1 text-sm leading-6 text-white/56">
+              Envia os posts salvos neste navegador para o Supabase e ignora duplicatas pelo slug.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={migrateOldPosts}
+            disabled={migrationLoading}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-nexus-500 px-5 text-sm font-black transition hover:bg-nexus-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <UploadCloud size={18} /> {migrationLoading ? "Migrando..." : "Migrar posts antigos"}
+          </button>
+        </div>
+        {migrationStatus ? (
+          <p
+            className={`mt-4 rounded-md border px-4 py-3 text-sm font-semibold ${
+              migrationType === "success"
+                ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
+                : "border-red-400/25 bg-red-400/10 text-red-200"
+            }`}
+          >
+            {migrationStatus}
+          </p>
+        ) : null}
       </section>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[420px_1fr]">
