@@ -194,12 +194,19 @@ function ArticleLineBlock({
 }) {
   const shouldShowImage = Boolean(image) && (index + 1) % 13 === 0;
 
-  return (
-    <>
-      <p>{line}</p>
-      {shouldShowImage ? <ArticleImage image={image} title={title} index={Math.floor(index / 13)} /> : null}
-    </>
-  );
+ return (
+  <>
+    <p>{line}</p>
+
+    {shouldShowImage && image ? (
+      <ArticleImage
+        image={image}
+        title={title}
+        index={Math.floor(index / 13)}
+      />
+    ) : null}
+  </>
+);
 }
 
 function ArticleImage({ image, title, index }: { image: string; title: string; index: number }) {
