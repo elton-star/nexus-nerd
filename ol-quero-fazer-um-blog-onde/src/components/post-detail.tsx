@@ -15,7 +15,7 @@ export function PostDetail({ post }: { post: Post }) {
   const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === post.slug));
   const category = getCategory(post.category);
   const { posts } = usePosts();
-  const articleLines = buildArticleLines(post.content);
+  const articleBlocks = chunkArticleLines(buildArticleLines(post.content), 13);
 
   const related = useMemo(
     () => posts.filter((candidate) => candidate.category === post.category && candidate.id !== post.id),
@@ -71,17 +71,20 @@ export function PostDetail({ post }: { post: Post }) {
 
         <section className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_220px] lg:px-8">
           <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
-            {articleLines.map((line, index) => (
-              <ArticleLineBlock
-                key={`${line}-${index}`}
-                line={line}
-                index={index}
-                image={post.gallery?.[Math.floor((index + 1) / 13) - 1]}
-                title={post.title}
-              />
+            {articleBlocks.map((block, blockIndex) => (
+              <div key={`block-${blockIndex}`} className="not-prose">
+                <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
+                  {block.map((line, lineIndex) => (
+                    <p key={`${line}-${lineIndex}`}>{line}</p>
+                  ))}
+                </div>
+                {post.gallery?.[blockIndex] ? (
+                  <ArticleImage image={post.gallery[blockIndex]} title={post.title} index={blockIndex} />
+                ) : null}
+              </div>
             ))}
-            {post.gallery?.slice(Math.floor(articleLines.length / 13)).map((image, index) => (
-              <ArticleImage key={image} image={image} title={post.title} index={index + Math.floor(articleLines.length / 13)} />
+            {post.gallery?.slice(articleBlocks.length).map((image, index) => (
+              <ArticleImage key={image} image={image} title={post.title} index={index + articleBlocks.length} />
             ))}
             {post.affiliateLink ? (
               <div className="not-prose my-8 rounded-lg border border-nexus-400/24 bg-nexus-500/12 p-5">
@@ -181,32 +184,14 @@ function buildArticleLines(content: string) {
     .filter(Boolean);
 }
 
-function ArticleLineBlock({
-  line,
-  index,
-  image,
-  title
-}: {
-  line: string;
-  index: number;
-  image?: string;
-  title: string;
-}) {
-  const shouldShowImage = Boolean(image) && (index + 1) % 13 === 0;
+function chunkArticleLines(lines: string[], size: number) {
+  const chunks: string[][] = [];
 
- return (
-  <>
-    <p>{line}</p>
+  for (let index = 0; index < lines.length; index += size) {
+    chunks.push(lines.slice(index, index + size));
+  }
 
-    {shouldShowImage && image ? (
-      <ArticleImage
-        image={image}
-        title={title}
-        index={Math.floor(index / 13)}
-      />
-    ) : null}
-  </>
-);
+  return chunks;
 }
 
 function ArticleImage({ image, title, index }: { image: string; title: string; index: number }) {
