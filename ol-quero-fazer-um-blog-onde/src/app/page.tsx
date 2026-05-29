@@ -26,7 +26,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Hero post={featured} />
+      <Hero posts={posts.slice(0, 6)} post={featured} />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <SectionHeading title="Posts em destaque" kicker="Prime Video Geek" />
