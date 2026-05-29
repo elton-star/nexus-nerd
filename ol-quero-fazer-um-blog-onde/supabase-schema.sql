@@ -1,4 +1,4 @@
-create table profiles (
+create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   role text not null default 'member' check (role in ('admin', 'editor', 'member')),
@@ -6,7 +6,7 @@ create table profiles (
   created_at timestamptz not null default now()
 );
 
-create table posts (
+create table if not exists posts (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
   title text not null,
@@ -14,8 +14,13 @@ create table posts (
   content text not null,
   category text not null,
   cover text not null,
-  author_id uuid references profiles(id),
+  gallery text[] not null default '{}',
+  affiliate_link text,
+  author text not null default 'Editor Nexus',
+  date date not null default current_date,
   read_time text not null default '4 min',
+  likes integer not null default 0,
+  comments integer not null default 0,
   featured boolean not null default false,
   trending boolean not null default false,
   tags text[] not null default '{}',
@@ -23,15 +28,23 @@ create table posts (
   updated_at timestamptz not null default now()
 );
 
-create table comments (
+alter table posts add column if not exists gallery text[] not null default '{}';
+alter table posts add column if not exists affiliate_link text;
+alter table posts add column if not exists author text not null default 'Editor Nexus';
+alter table posts add column if not exists date date not null default current_date;
+alter table posts add column if not exists likes integer not null default 0;
+alter table posts add column if not exists comments integer not null default 0;
+
+create table if not exists comments (
   id uuid primary key default gen_random_uuid(),
   post_id uuid not null references posts(id) on delete cascade,
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  user_name text not null default 'Visitante',
   message text not null,
   created_at timestamptz not null default now()
 );
 
-create table likes (
+create table if not exists likes (
   post_id uuid not null references posts(id) on delete cascade,
   user_id uuid not null references profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
@@ -43,12 +56,26 @@ alter table posts enable row level security;
 alter table comments enable row level security;
 alter table likes enable row level security;
 
+drop policy if exists "Public profiles are readable" on profiles;
+drop policy if exists "Posts are readable" on posts;
+drop policy if exists "Posts can be created from app" on posts;
+drop policy if exists "Posts can be updated from app" on posts;
+drop policy if exists "Posts can be deleted from app" on posts;
+drop policy if exists "Comments are readable" on comments;
+drop policy if exists "Comments can be created from app" on comments;
+drop policy if exists "Likes are readable" on likes;
+drop policy if exists "Users can like" on likes;
+drop policy if exists "Users can remove own like" on likes;
+drop policy if exists "Users can update own profile" on profiles;
+
 create policy "Public profiles are readable" on profiles for select using (true);
 create policy "Posts are readable" on posts for select using (true);
+create policy "Posts can be created from app" on posts for insert with check (true);
+create policy "Posts can be updated from app" on posts for update using (true) with check (true);
+create policy "Posts can be deleted from app" on posts for delete using (true);
 create policy "Comments are readable" on comments for select using (true);
+create policy "Comments can be created from app" on comments for insert with check (true);
 create policy "Likes are readable" on likes for select using (true);
-
 create policy "Users can update own profile" on profiles for update using (auth.uid() = id);
-create policy "Users can comment" on comments for insert with check (auth.uid() = user_id);
 create policy "Users can like" on likes for insert with check (auth.uid() = user_id);
 create policy "Users can remove own like" on likes for delete using (auth.uid() = user_id);

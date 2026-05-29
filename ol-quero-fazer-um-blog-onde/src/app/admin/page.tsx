@@ -33,11 +33,11 @@ export default function AdminPage() {
     [posts, users.length]
   );
 
-  function submitPost(event: FormEvent<HTMLFormElement>) {
+  async function submitPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (editingId) {
-      updatePost(editingId, {
+      await updatePost(editingId, {
         title: draft.title,
         excerpt: draft.excerpt,
         content: draft.content,
@@ -68,7 +68,7 @@ export default function AdminPage() {
         comments: 0,
         tags: [draft.category]
       };
-      createPost(created);
+      await createPost(created);
     }
 
     setEditingId(null);

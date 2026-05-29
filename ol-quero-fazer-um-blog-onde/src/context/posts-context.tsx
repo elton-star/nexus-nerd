@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { posts as seedPosts } from "@/lib/posts";
+import { supabase } from "@/lib/supabase";
 import type { Post } from "@/types";
 
 type PostsContextValue = {
   posts: Post[];
-  createPost: (post: Post) => void;
-  updatePost: (id: string, post: Partial<Post>) => void;
-  deletePost: (id: string) => void;
+  createPost: (post: Post) => Promise<void>;
+  updatePost: (id: string, post: Partial<Post>) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   getPostBySlug: (slug: string) => Post | undefined;
 };
 
@@ -30,18 +31,96 @@ function normalizeSavedPosts(savedPosts: Post[]) {
   });
 }
 
+type SupabasePost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: Post["category"];
+  cover: string;
+  gallery: string[] | null;
+  affiliate_link: string | null;
+  author: string | null;
+  date: string | null;
+  read_time: string | null;
+  likes: number | null;
+  comments: number | null;
+  featured: boolean | null;
+  trending: boolean | null;
+  tags: string[] | null;
+};
+
+function fromSupabase(row: SupabasePost): Post {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    content: row.content,
+    category: row.category,
+    cover: row.cover,
+    gallery: row.gallery ?? [],
+    affiliateLink: row.affiliate_link ?? undefined,
+    author: row.author ?? "Editor Nexus",
+    date: row.date ?? new Date().toISOString().slice(0, 10),
+    readTime: row.read_time ?? "4 min",
+    likes: row.likes ?? 0,
+    comments: row.comments ?? 0,
+    featured: row.featured ?? false,
+    trending: row.trending ?? false,
+    tags: row.tags ?? [row.category]
+  };
+}
+
+function toSupabase(post: Post) {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    content: post.content,
+    category: post.category,
+    cover: post.cover,
+    gallery: post.gallery ?? [],
+    affiliate_link: post.affiliateLink ?? null,
+    author: post.author,
+    date: post.date,
+    read_time: post.readTime,
+    likes: post.likes,
+    comments: post.comments,
+    featured: post.featured ?? false,
+    trending: post.trending ?? false,
+    tags: post.tags
+  };
+}
+
 export function PostsProvider({ children }: { children: React.ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(seedPosts);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
+    async function loadPosts() {
+      if (supabase) {
+        const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
 
-    if (saved) {
-      setPosts(normalizeSavedPosts(JSON.parse(saved) as Post[]));
+        if (!error && data) {
+          setPosts((data as SupabasePost[]).map(fromSupabase));
+          setHydrated(true);
+          return;
+        }
+      }
+
+      const saved = window.localStorage.getItem(storageKey);
+
+      if (saved) {
+        setPosts(normalizeSavedPosts(JSON.parse(saved) as Post[]));
+      }
+
+      setHydrated(true);
     }
 
-    setHydrated(true);
+    loadPosts();
   }, []);
 
   useEffect(() => {
@@ -57,7 +136,7 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (hydrated && !supabase) {
       window.localStorage.setItem(storageKey, JSON.stringify(posts));
     }
   }, [hydrated, posts]);
@@ -65,11 +144,43 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<PostsContextValue>(
     () => ({
       posts,
-      createPost: (post: Post) => setPosts((current) => [post, ...current]),
-      updatePost: (id: string, post: Partial<Post>) => {
-        setPosts((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, ...post } : candidate)));
+      createPost: async (post: Post) => {
+        setPosts((current) => [post, ...current]);
+
+        if (supabase) {
+          const { error } = await supabase.from("posts").insert(toSupabase(post));
+
+          if (error) {
+            console.error("Could not publish post to Supabase", error);
+          }
+        }
       },
-      deletePost: (id: string) => setPosts((current) => current.filter((candidate) => candidate.id !== id)),
+      updatePost: async (id: string, post: Partial<Post>) => {
+        setPosts((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, ...post } : candidate)));
+
+        if (supabase) {
+          const currentPost = posts.find((candidate) => candidate.id === id);
+
+          if (currentPost) {
+            const { error } = await supabase.from("posts").update(toSupabase({ ...currentPost, ...post })).eq("id", id);
+
+            if (error) {
+              console.error("Could not update post in Supabase", error);
+            }
+          }
+        }
+      },
+      deletePost: async (id: string) => {
+        setPosts((current) => current.filter((candidate) => candidate.id !== id));
+
+        if (supabase) {
+          const { error } = await supabase.from("posts").delete().eq("id", id);
+
+          if (error) {
+            console.error("Could not delete post from Supabase", error);
+          }
+        }
+      },
       getPostBySlug: (slug: string) => posts.find((post) => post.slug === slug)
     }),
     [posts]
