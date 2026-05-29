@@ -24,6 +24,14 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const storageKey = "nexus-nerd-users";
+const defaultAdmin: StoredUser = {
+  id: "admin-nexus",
+  name: "adminnexus",
+  email: "adminnexus@nexusnerd.local",
+  password: "Nexus100#",
+  role: "admin",
+  avatar: "AN"
+};
 
 function getAvatar(name: string) {
   return name
@@ -49,7 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const saved = window.localStorage.getItem(storageKey);
 
     if (saved) {
-      setStoredUsers(JSON.parse(saved) as StoredUser[]);
+      const parsed = JSON.parse(saved) as StoredUser[];
+      const hasDefaultAdmin = parsed.some((candidate) => candidate.name === defaultAdmin.name);
+      setStoredUsers(hasDefaultAdmin ? parsed : [defaultAdmin, ...parsed]);
+    } else {
+      setStoredUsers([defaultAdmin]);
     }
 
     setHydrated(true);
@@ -67,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       users,
       login: async (email: string, password: string) => {
         await new Promise((resolve) => setTimeout(resolve, 650));
-        const existing = storedUsers.find((candidate) => candidate.email.toLowerCase() === email.toLowerCase());
+        const identifier = email.toLowerCase();
+        const existing = storedUsers.find(
+          (candidate) => candidate.email.toLowerCase() === identifier || candidate.name.toLowerCase() === identifier
+        );
 
         if (!existing || existing.password !== password) {
           return {

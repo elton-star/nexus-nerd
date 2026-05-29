@@ -59,7 +59,7 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={submit} className="grid gap-4">
-        <AuthInput label="Email" name="email" type="email" autoComplete="email" placeholder="voce@email.com" />
+        <AuthInput label="Email ou usuário" name="email" autoComplete="username" placeholder="adminnexus ou voce@email.com" />
         <AuthInput label="Senha" name="password" type="password" autoComplete="current-password" placeholder="Sua senha" />
         <AuthMessage message={message} type={messageType} />
         <button
