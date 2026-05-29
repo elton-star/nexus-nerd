@@ -15,6 +15,21 @@ type PostsContextValue = {
 const PostsContext = createContext<PostsContextValue | null>(null);
 const storageKey = "nexus-nerd-posts";
 
+function normalizeSavedPosts(savedPosts: Post[]) {
+  return savedPosts.map((post) => {
+    const originalPost = seedPosts.find((candidate) => candidate.id === post.id);
+
+    if (!originalPost) {
+      return post;
+    }
+
+    return {
+      ...post,
+      slug: originalPost.slug
+    };
+  });
+}
+
 export function PostsProvider({ children }: { children: React.ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(seedPosts);
   const [hydrated, setHydrated] = useState(false);
@@ -23,7 +38,7 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
     const saved = window.localStorage.getItem(storageKey);
 
     if (saved) {
-      setPosts(JSON.parse(saved) as Post[]);
+      setPosts(normalizeSavedPosts(JSON.parse(saved) as Post[]));
     }
 
     setHydrated(true);

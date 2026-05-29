@@ -45,8 +45,7 @@ export default function AdminPage() {
         gallery: draft.gallery
           .split("\n")
           .map((image) => image.trim())
-          .filter(Boolean),
-        slug: draft.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+          .filter(Boolean)
       });
     } else {
       const created: Post = {
