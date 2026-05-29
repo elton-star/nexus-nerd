@@ -12,6 +12,7 @@ const emptyDraft = {
   excerpt: "",
   category: "noticias" as CategorySlug,
   cover: "https://images.unsplash.com/photo-1608889476561-6242cfdbf622?auto=format&fit=crop&w=1600&q=80",
+  gallery: "",
   content: ""
 };
 
@@ -40,7 +41,15 @@ export default function AdminPage() {
           post.id === editingId
             ? {
                 ...post,
-                ...draft,
+                title: draft.title,
+                excerpt: draft.excerpt,
+                content: draft.content,
+                category: draft.category,
+                cover: draft.cover,
+                gallery: draft.gallery
+                  .split("\n")
+                  .map((image) => image.trim())
+                  .filter(Boolean),
                 slug: draft.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
               }
             : post
@@ -52,10 +61,14 @@ export default function AdminPage() {
         slug: draft.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
         title: draft.title,
         excerpt: draft.excerpt,
-        content: draft.content,
-        category: draft.category,
-        cover: draft.cover,
-        author: user?.name ?? "Editor Nexus",
+                content: draft.content,
+                category: draft.category,
+                cover: draft.cover,
+                gallery: draft.gallery
+                  .split("\n")
+                  .map((image) => image.trim())
+                  .filter(Boolean),
+                author: user?.name ?? "Editor Nexus",
         date: new Date().toISOString().slice(0, 10),
         readTime: "4 min",
         likes: 0,
@@ -76,6 +89,7 @@ export default function AdminPage() {
       excerpt: post.excerpt,
       category: post.category,
       cover: post.cover,
+      gallery: post.gallery?.join("\n") ?? "",
       content: post.content
     });
   }
@@ -149,6 +163,12 @@ export default function AdminPage() {
               required
               placeholder="URL da imagem"
               className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
+            />
+            <textarea
+              value={draft.gallery}
+              onChange={(event) => setDraft((current) => ({ ...current, gallery: event.target.value }))}
+              placeholder="Imagens internas do post: cole uma URL por linha"
+              className="min-h-28 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <textarea
               value={draft.content}

@@ -69,6 +69,30 @@ export function PostDetail({ post }: { post: Post }) {
         <section className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_220px] lg:px-8">
           <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
             <p>{post.content}</p>
+            {post.gallery?.length ? (
+              <div className="not-prose my-8 grid gap-4">
+                <div
+                  className="min-h-[320px] rounded-lg border border-white/10 bg-cover bg-center shadow-2xl"
+                  style={{
+                    backgroundImage: `linear-gradient(180deg, rgba(5,2,10,.05), rgba(5,2,10,.34)), url(${post.gallery[0]})`
+                  }}
+                />
+                {post.gallery.length > 1 ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {post.gallery.slice(1).map((image, index) => (
+                      <div
+                        key={image}
+                        className="min-h-[220px] rounded-lg border border-white/10 bg-cover bg-center"
+                        style={{
+                          backgroundImage: `linear-gradient(180deg, rgba(5,2,10,.04), rgba(5,2,10,.28)), url(${image})`
+                        }}
+                        aria-label={`Imagem extra ${index + 2} do artigo`}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <p>
               No Nexus Nerd, a análise olha para a experiência do fã: o impacto nas comunidades, as possibilidades de
               continuidade e a forma como cada lançamento conversa com outras mídias. Esse é o tipo de assunto que cresce
