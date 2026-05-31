@@ -28,9 +28,12 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-void/82 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3" aria-label="Nexus Nerd">
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-nexus-500 text-lg font-black shadow-glow">N</span>
-          <span className="min-w-max text-xl font-black tracking-normal">
-            Nexus <span className="text-nexus-400">Nerd</span>
+          <span className="block h-14 w-40 overflow-hidden sm:w-52">
+            <img
+              src="/nexus-nerd-logo.png"
+              alt="Nexus Nerd"
+              className="h-full w-full scale-[2.7] object-cover object-center"
+            />
           </span>
         </Link>
 
