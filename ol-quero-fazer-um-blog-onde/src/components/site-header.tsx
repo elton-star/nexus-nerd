@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, Search, Shield, UserRound, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { categories } from "@/lib/categories";
 import { useAuth } from "@/context/auth-context";
 
@@ -12,6 +12,11 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    setOpen(false);
+    setProfileOpen(false);
+  }, [pathname]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -136,30 +141,36 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Link className="rounded-md bg-white/8 p-3 text-center text-sm" href="/busca">
+              <Link onClick={() => setOpen(false)} className="rounded-md bg-white/8 p-3 text-center text-sm" href="/busca">
                 Busca
               </Link>
               {user?.role === "admin" ? (
-                <Link className="rounded-md bg-white/8 p-3 text-center text-sm" href="/admin">
+                <Link onClick={() => setOpen(false)} className="rounded-md bg-white/8 p-3 text-center text-sm" href="/admin">
                   Admin
                 </Link>
               ) : null}
             </div>
             {user ? (
               <div className="grid gap-2 pt-2">
-                <Link className="rounded-md bg-nexus-500 p-3 text-center text-sm font-black" href="/perfil">
+                <Link onClick={() => setOpen(false)} className="rounded-md bg-nexus-500 p-3 text-center text-sm font-black" href="/perfil">
                   {user.avatar} Perfil
                 </Link>
-                <button onClick={logout} className="rounded-md bg-white/8 p-3 text-center text-sm font-black">
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="rounded-md bg-white/8 p-3 text-center text-sm font-black"
+                >
                   Sair
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <Link className="rounded-md bg-white/8 p-3 text-center text-sm font-black" href="/login">
+                <Link onClick={() => setOpen(false)} className="rounded-md bg-white/8 p-3 text-center text-sm font-black" href="/login">
                   Entrar
                 </Link>
-                <Link className="rounded-md bg-nexus-500 p-3 text-center text-sm font-black" href="/register">
+                <Link onClick={() => setOpen(false)} className="rounded-md bg-nexus-500 p-3 text-center text-sm font-black" href="/register">
                   Criar Conta
                 </Link>
               </div>
