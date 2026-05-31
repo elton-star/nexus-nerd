@@ -51,14 +51,16 @@ export function SiteHeader() {
           >
             <Search size={18} />
           </Link>
-          <Link
-            href="/admin"
-            className="grid h-10 w-10 place-items-center rounded-md border border-white/10 bg-white/6 text-white/78 transition hover:bg-white/12"
-            aria-label="Painel admin"
-            title="Painel admin"
-          >
-            <Shield size={18} />
-          </Link>
+          {user?.role === "admin" ? (
+            <Link
+              href="/admin"
+              className="grid h-10 w-10 place-items-center rounded-md border border-white/10 bg-white/6 text-white/78 transition hover:bg-white/12"
+              aria-label="Painel admin"
+              title="Painel admin"
+            >
+              <Shield size={18} />
+            </Link>
+          ) : null}
           {user ? (
             <div className="relative">
               <button
@@ -137,9 +139,11 @@ export function SiteHeader() {
               <Link className="rounded-md bg-white/8 p-3 text-center text-sm" href="/busca">
                 Busca
               </Link>
-              <Link className="rounded-md bg-white/8 p-3 text-center text-sm" href="/admin">
-                Admin
-              </Link>
+              {user?.role === "admin" ? (
+                <Link className="rounded-md bg-white/8 p-3 text-center text-sm" href="/admin">
+                  Admin
+                </Link>
+              ) : null}
             </div>
             {user ? (
               <div className="grid gap-2 pt-2">

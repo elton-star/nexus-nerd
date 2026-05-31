@@ -6,6 +6,7 @@ import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
 import { getCategory } from "@/lib/categories";
 import { usePosts } from "@/context/posts-context";
+import { TheoryPublisher } from "@/components/theory-publisher";
 
 export default function CategoryPage() {
   const params = useParams<{ category: string }>();
@@ -36,6 +37,8 @@ export default function CategoryPage() {
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/62">{category.description}</p>
         </div>
       </section>
+
+      {params.category === "teorias" ? <TheoryPublisher /> : null}
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <SectionHeading title={`Tudo sobre ${category.label}`} />
