@@ -2,19 +2,22 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Heart, MessageCircle, Share2, Timer } from "lucide-react";
+import { Bookmark, ExternalLink, Heart, MessageCircle, Share2, Timer } from "lucide-react";
 import type { Comment, Post } from "@/types";
 import { comments as seedComments } from "@/lib/posts";
 import { getCategory } from "@/lib/categories";
 import { ContentRow } from "@/components/content-row";
 import { usePosts } from "@/context/posts-context";
+import { useAuth } from "@/context/auth-context";
 
 export function PostDetail({ post }: { post: Post }) {
   const [likes, setLikes] = useState(post.likes);
-  const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === post.slug));
   const category = getCategory(post.category);
   const { posts } = usePosts();
+  const { user, toggleLike, toggleFavorite, addRecentComment } = useAuth();
+  const liked = user?.likedPostIds.includes(post.id) ?? false;
+  const favorite = user?.favoritePostIds.includes(post.id) ?? false;
   const articleBlocks = chunkArticleLines(buildArticleLines(post.content), 13);
 
   const related = useMemo(
@@ -41,6 +44,13 @@ export function PostDetail({ post }: { post: Post }) {
       },
       ...current
     ]);
+    addRecentComment({
+      id: crypto.randomUUID(),
+      postSlug: post.slug,
+      user: user?.name ?? "Visitante",
+      message,
+      date: new Date().toISOString().slice(0, 10)
+    });
     event.currentTarget.reset();
   }
 
@@ -109,17 +119,30 @@ export function PostDetail({ post }: { post: Post }) {
           </div>
 
           <aside className="glass h-fit rounded-lg p-4">
-            <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+            <div className="grid grid-cols-4 gap-2 lg:grid-cols-1">
               <button
                 onClick={() => {
-                  setLiked((current) => !current);
-                  setLikes((current) => current + (liked ? -1 : 1));
+                  if (!user) {
+                    return;
+                  }
+
+                  const nextLiked = toggleLike(post.id);
+                  setLikes((current) => current + (nextLiked ? 1 : -1));
                 }}
                 className={`flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 text-sm font-black transition ${
                   liked ? "bg-nexus-500 text-white" : "bg-white/6 text-white/78 hover:bg-white/12"
                 }`}
               >
                 <Heart size={17} fill={liked ? "currentColor" : "none"} /> {likes}
+              </button>
+              <button
+                onClick={() => toggleFavorite(post.id)}
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 text-sm font-black transition ${
+                  favorite ? "bg-nexus-500 text-white" : "bg-white/6 text-white/78 hover:bg-white/12"
+                }`}
+                title={user ? "Salvar nos favoritos" : "Entre para salvar"}
+              >
+                <Bookmark size={17} fill={favorite ? "currentColor" : "none"} />
               </button>
               <a
                 href="#comentarios"

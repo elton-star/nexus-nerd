@@ -44,4 +44,7 @@ export type NexusUser = {
   email: string;
   role: UserRole;
   avatar: string;
+  likedPostIds: string[];
+  favoritePostIds: string[];
+  recentComments: Comment[];
 };

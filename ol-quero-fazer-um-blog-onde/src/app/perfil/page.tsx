@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { Bookmark, Edit3, Heart, LogOut, MessageCircle, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
-import { comments, posts } from "@/lib/posts";
+import { usePosts } from "@/context/posts-context";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const favorites = posts.slice(0, 3);
-  const recentComments = comments.slice(0, 3);
+  const { posts } = usePosts();
+  const favorites = user ? posts.filter((post) => user.favoritePostIds.includes(post.id)) : [];
+  const recentComments = user?.recentComments ?? [];
 
   function handleLogout() {
     logout();
@@ -75,7 +76,7 @@ export default function ProfilePage() {
 
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         {[
-          { label: "Posts curtidos", value: "24", icon: Heart },
+          { label: "Posts curtidos", value: user.likedPostIds.length, icon: Heart },
           { label: "Favoritos", value: favorites.length, icon: Bookmark },
           { label: "Permissão", value: user.role, icon: Shield }
         ].map((item) => (
@@ -93,12 +94,16 @@ export default function ProfilePage() {
             <Bookmark size={22} className="text-nexus-400" /> Posts Favoritos
           </h2>
           <div className="grid gap-3">
-            {favorites.map((post) => (
-              <Link key={post.id} href={`/artigo/${post.slug}`} className="rounded-lg border border-white/10 bg-white/6 p-4 transition hover:bg-white/10">
-                <strong>{post.title}</strong>
-                <p className="mt-1 text-sm text-white/54">{post.excerpt}</p>
-              </Link>
-            ))}
+            {favorites.length ? (
+              favorites.map((post) => (
+                <Link key={post.id} href={`/artigo/${post.slug}`} className="rounded-lg border border-white/10 bg-white/6 p-4 transition hover:bg-white/10">
+                  <strong>{post.title}</strong>
+                  <p className="mt-1 text-sm text-white/54">{post.excerpt}</p>
+                </Link>
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-white/12 p-4 text-sm text-white/46">Nenhum post favoritado ainda.</p>
+            )}
           </div>
         </div>
 
@@ -107,12 +112,16 @@ export default function ProfilePage() {
             <MessageCircle size={22} className="text-nexus-400" /> Comentários Recentes
           </h2>
           <div className="grid gap-3">
-            {recentComments.map((comment) => (
-              <div key={comment.id} className="rounded-lg border border-white/10 bg-white/6 p-4">
-                <p className="text-sm leading-6 text-white/72">{comment.message}</p>
-                <span className="mt-2 block text-xs font-bold text-white/42">{new Date(comment.date).toLocaleDateString("pt-BR")}</span>
-              </div>
-            ))}
+            {recentComments.length ? (
+              recentComments.map((comment) => (
+                <div key={comment.id} className="rounded-lg border border-white/10 bg-white/6 p-4">
+                  <p className="text-sm leading-6 text-white/72">{comment.message}</p>
+                  <span className="mt-2 block text-xs font-bold text-white/42">{new Date(comment.date).toLocaleDateString("pt-BR")}</span>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-white/12 p-4 text-sm text-white/46">Nenhum comentário publicado ainda.</p>
+            )}
           </div>
         </div>
       </section>

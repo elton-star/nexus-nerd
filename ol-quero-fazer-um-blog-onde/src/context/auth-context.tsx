@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { NexusUser, UserRole } from "@/types";
+import type { Comment, NexusUser, UserRole } from "@/types";
 
 type StoredUser = NexusUser & {
   password: string;
@@ -20,6 +20,9 @@ type AuthContextValue = {
   loginWithGoogle: () => Promise<AuthResult>;
   logout: () => void;
   updateRole: (id: string, role: UserRole) => void;
+  toggleLike: (postId: string) => boolean;
+  toggleFavorite: (postId: string) => boolean;
+  addRecentComment: (comment: Comment) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -31,7 +34,10 @@ const defaultAdmin: StoredUser = {
   email: "adminnexus@nexusnerd.local",
   password: "Nexus100#",
   role: "admin",
-  avatar: "AN"
+  avatar: "AN",
+  likedPostIds: [],
+  favoritePostIds: [],
+  recentComments: []
 };
 
 function getAvatar(name: string) {
@@ -45,7 +51,12 @@ function getAvatar(name: string) {
 
 function withoutPassword(user: StoredUser): NexusUser {
   const { password: _password, ...safeUser } = user;
-  return safeUser;
+  return {
+    ...safeUser,
+    likedPostIds: safeUser.likedPostIds ?? [],
+    favoritePostIds: safeUser.favoritePostIds ?? [],
+    recentComments: safeUser.recentComments ?? []
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -140,7 +151,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email,
           password,
           role: storedUsers.length === 0 ? "admin" : "member",
-          avatar: getAvatar(name)
+          avatar: getAvatar(name),
+          likedPostIds: [],
+          favoritePostIds: [],
+          recentComments: []
         };
         setStoredUsers((current) => [created, ...current]);
         setUser(withoutPassword(created));
@@ -166,7 +180,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: googleEmail,
             password: crypto.randomUUID(),
             role: storedUsers.length === 0 ? "admin" : "member",
-            avatar: "NG"
+            avatar: "NG",
+            likedPostIds: [],
+            favoritePostIds: [],
+            recentComments: []
           };
           setStoredUsers((current) => [created, ...current]);
           setUser(withoutPassword(created));
@@ -185,6 +202,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateRole: (id: string, role: UserRole) => {
         setStoredUsers((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, role } : candidate)));
         setUser((current) => (current?.id === id ? { ...current, role } : current));
+      },
+      toggleLike: (postId: string) => {
+        if (!user) {
+          return false;
+        }
+
+        const liked = !user.likedPostIds.includes(postId);
+        const likedPostIds = liked ? [...user.likedPostIds, postId] : user.likedPostIds.filter((id) => id !== postId);
+        setStoredUsers((current) => current.map((candidate) => (candidate.id === user.id ? { ...candidate, likedPostIds } : candidate)));
+        setUser((current) => (current ? { ...current, likedPostIds } : current));
+        return liked;
+      },
+      toggleFavorite: (postId: string) => {
+        if (!user) {
+          return false;
+        }
+
+        const favorite = !user.favoritePostIds.includes(postId);
+        const favoritePostIds = favorite
+          ? [...user.favoritePostIds, postId]
+          : user.favoritePostIds.filter((id) => id !== postId);
+        setStoredUsers((current) => current.map((candidate) => (candidate.id === user.id ? { ...candidate, favoritePostIds } : candidate)));
+        setUser((current) => (current ? { ...current, favoritePostIds } : current));
+        return favorite;
+      },
+      addRecentComment: (comment: Comment) => {
+        if (!user) {
+          return;
+        }
+
+        const recentComments = [comment, ...user.recentComments].slice(0, 10);
+        setStoredUsers((current) => current.map((candidate) => (candidate.id === user.id ? { ...candidate, recentComments } : candidate)));
+        setUser((current) => (current ? { ...current, recentComments } : current));
       }
     }),
     [storedUsers, user, users]
