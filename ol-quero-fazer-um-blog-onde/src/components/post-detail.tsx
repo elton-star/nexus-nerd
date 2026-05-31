@@ -9,6 +9,7 @@ import { getCategory } from "@/lib/categories";
 import { ContentRow } from "@/components/content-row";
 import { usePosts } from "@/context/posts-context";
 import { useAuth } from "@/context/auth-context";
+import { RelativeTime } from "@/components/relative-time";
 
 export function PostDetail({ post }: { post: Post }) {
   const [likes, setLikes] = useState(post.likes);
@@ -71,7 +72,7 @@ export function PostDetail({ post }: { post: Post }) {
             <p className="mt-5 max-w-3xl text-lg leading-8 text-white/68">{post.excerpt}</p>
             <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold text-white/54">
               <span>{post.author}</span>
-              <span>{new Date(post.date).toLocaleDateString("pt-BR")}</span>
+              <RelativeTime date={post.date} />
               <span className="flex items-center gap-1">
                 <Timer size={16} /> {post.readTime}
               </span>

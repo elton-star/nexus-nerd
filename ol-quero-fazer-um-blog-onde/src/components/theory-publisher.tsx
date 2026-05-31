@@ -43,7 +43,7 @@ export function TheoryPublisher() {
       category: "teorias",
       cover: String(form.get("cover") ?? "").trim() || defaultCover,
       author: user.name,
-      date: new Date().toISOString().slice(0, 10),
+      date: new Date().toISOString(),
       readTime: "4 min",
       likes: 0,
       comments: 0,

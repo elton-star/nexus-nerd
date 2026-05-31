@@ -64,7 +64,7 @@ function fromSupabase(row: SupabasePost): Post {
     gallery: row.gallery ?? [],
     affiliateLink: row.affiliate_link ?? undefined,
     author: row.author ?? "Editor Nexus",
-    date: row.date ?? new Date().toISOString().slice(0, 10),
+    date: row.date ?? new Date().toISOString(),
     readTime: row.read_time ?? "4 min",
     likes: row.likes ?? 0,
     comments: row.comments ?? 0,

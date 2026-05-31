@@ -17,7 +17,7 @@ create table if not exists posts (
   gallery text[] not null default '{}',
   affiliate_link text,
   author text not null default 'Editor Nexus',
-  date date not null default current_date,
+  date timestamptz not null default now(),
   read_time text not null default '4 min',
   likes integer not null default 0,
   comments integer not null default 0,
@@ -31,9 +31,11 @@ create table if not exists posts (
 alter table posts add column if not exists gallery text[] not null default '{}';
 alter table posts add column if not exists affiliate_link text;
 alter table posts add column if not exists author text not null default 'Editor Nexus';
-alter table posts add column if not exists date date not null default current_date;
+alter table posts add column if not exists date timestamptz not null default now();
 alter table posts add column if not exists likes integer not null default 0;
 alter table posts add column if not exists comments integer not null default 0;
+alter table posts alter column date type timestamptz using date::timestamptz;
+alter table posts alter column date set default now();
 
 create table if not exists comments (
   id uuid primary key default gen_random_uuid(),

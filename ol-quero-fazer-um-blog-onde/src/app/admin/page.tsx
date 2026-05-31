@@ -65,7 +65,7 @@ export default function AdminPage() {
                   .filter(Boolean),
                 affiliateLink: draft.affiliateLink.trim() || undefined,
                 author: user?.name ?? "Editor Nexus",
-        date: new Date().toISOString().slice(0, 10),
+        date: new Date().toISOString(),
         readTime: "4 min",
         likes: 0,
         comments: 0,

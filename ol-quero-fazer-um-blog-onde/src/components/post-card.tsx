@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Heart, MessageCircle, Timer } from "lucide-react";
 import type { Post } from "@/types";
 import { getCategory } from "@/lib/categories";
+import { RelativeTime } from "@/components/relative-time";
 
 export function PostCard({ post, large = false }: { post: Post; large?: boolean }) {
   const category = getCategory(post.category);
@@ -34,6 +35,7 @@ export function PostCard({ post, large = false }: { post: Post; large?: boolean 
           </h3>
           <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/60">{post.excerpt}</p>
           <div className="mt-4 flex items-center gap-4 text-xs font-semibold text-white/48">
+            <RelativeTime date={post.date} />
             <span className="flex items-center gap-1">
               <Timer size={14} /> {post.readTime}
             </span>
