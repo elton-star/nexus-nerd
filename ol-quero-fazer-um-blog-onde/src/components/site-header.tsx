@@ -28,11 +28,11 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-void/82 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3" aria-label="Nexus Nerd">
-          <span className="block h-11 w-40 overflow-hidden">
+          <span className="block h-[52px] w-40 overflow-hidden">
             <img
               src="/nexus-nerd-logo.png"
               alt="Nexus Nerd"
-              className="h-full w-full scale-[1.45] object-cover object-center"
+              className="h-full w-full scale-[1.38] object-cover object-center"
             />
           </span>
         </Link>
