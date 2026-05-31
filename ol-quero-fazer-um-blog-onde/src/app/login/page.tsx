@@ -13,7 +13,7 @@ import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginWithGoogle } = useAuth();
+  const { authReady, login, loginWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -63,11 +63,11 @@ export default function LoginPage() {
         <AuthInput label="Senha" name="password" type="password" autoComplete="current-password" placeholder="Sua senha" />
         <AuthMessage message={message} type={messageType} />
         <button
-          disabled={loading}
+          disabled={loading || !authReady}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-nexus-500 px-5 text-sm font-black transition hover:bg-nexus-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? <LoadingSpinner /> : <LogIn size={18} />}
-          Entrar
+          {authReady ? "Entrar" : "Carregando conta..."}
         </button>
       </form>
 

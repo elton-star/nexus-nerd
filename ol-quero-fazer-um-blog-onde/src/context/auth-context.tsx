@@ -15,6 +15,7 @@ type AuthResult = {
 type AuthContextValue = {
   user: NexusUser | null;
   users: NexusUser[];
+  authReady: boolean;
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (name: string, email: string, password: string, confirmPassword: string) => Promise<AuthResult>;
   loginWithGoogle: () => Promise<AuthResult>;
@@ -59,6 +60,21 @@ function withoutPassword(user: StoredUser): NexusUser {
   };
 }
 
+function normalizeIdentifier(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizeStoredUser(user: StoredUser): StoredUser {
+  return {
+    ...user,
+    name: user.name.trim(),
+    email: normalizeIdentifier(user.email),
+    likedPostIds: user.likedPostIds ?? [],
+    favoritePostIds: user.favoritePostIds ?? [],
+    recentComments: user.recentComments ?? []
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]);
   const [user, setUser] = useState<NexusUser | null>(null);
@@ -70,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedSessionId = window.localStorage.getItem(sessionStorageKey);
 
     if (saved) {
-      const parsed = JSON.parse(saved) as StoredUser[];
+      const parsed = (JSON.parse(saved) as StoredUser[]).map(normalizeStoredUser);
       const hasDefaultAdmin = parsed.some((candidate) => candidate.name === defaultAdmin.name);
       const availableUsers = hasDefaultAdmin ? parsed : [defaultAdmin, ...parsed];
       setStoredUsers(availableUsers);
@@ -99,11 +115,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       users,
+      authReady: hydrated,
       login: async (email: string, password: string) => {
         await new Promise((resolve) => setTimeout(resolve, 650));
-        const identifier = email.toLowerCase();
+
+        if (!hydrated) {
+          return {
+            ok: false,
+            message: "Aguarde um instante e tente entrar novamente."
+          };
+        }
+
+        const identifier = normalizeIdentifier(email);
         const existing = storedUsers.find(
-          (candidate) => candidate.email.toLowerCase() === identifier || candidate.name.toLowerCase() === identifier
+          (candidate) =>
+            normalizeIdentifier(candidate.email) === identifier || normalizeIdentifier(candidate.name) === identifier
         );
 
         if (!existing || existing.password !== password) {
@@ -123,6 +149,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       register: async (name: string, email: string, password: string, confirmPassword: string) => {
         await new Promise((resolve) => setTimeout(resolve, 650));
+        const normalizedName = name.trim();
+        const normalizedEmail = normalizeIdentifier(email);
+
+        if (!hydrated) {
+          return {
+            ok: false,
+            message: "Aguarde um instante e tente criar a conta novamente."
+          };
+        }
 
         if (password.length < 6) {
           return {
@@ -138,7 +173,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
-        if (storedUsers.some((candidate) => candidate.email.toLowerCase() === email.toLowerCase())) {
+        if (
+          storedUsers.some(
+            (candidate) =>
+              normalizeIdentifier(candidate.email) === normalizedEmail ||
+              normalizeIdentifier(candidate.name) === normalizeIdentifier(normalizedName)
+          )
+        ) {
           return {
             ok: false,
             message: "Já existe uma conta com esse email."
@@ -147,11 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const created: StoredUser = {
           id: crypto.randomUUID(),
-          name,
-          email,
+          name: normalizedName,
+          email: normalizedEmail,
           password,
           role: storedUsers.length === 0 ? "admin" : "member",
-          avatar: getAvatar(name),
+          avatar: getAvatar(normalizedName),
           likedPostIds: [],
           favoritePostIds: [],
           recentComments: []
@@ -237,7 +278,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser((current) => (current ? { ...current, recentComments } : current));
       }
     }),
-    [storedUsers, user, users]
+    [hydrated, storedUsers, user, users]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
