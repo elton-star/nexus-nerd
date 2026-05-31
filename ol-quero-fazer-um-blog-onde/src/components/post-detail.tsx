@@ -84,12 +84,9 @@ export function PostDetail({ post }: { post: Post }) {
             {articleBlocks.map((block, blockIndex) => (
               <div key={`block-${blockIndex}`} className="not-prose">
                 <div className="grid gap-5">
-                  {block.map((line, lineIndex) => (
-                    <p
-                      key={`${line.text}-${lineIndex}`}
-                      className={`text-base leading-8 text-white/72 ${line.paragraphEnd ? "mb-5" : "mb-0"}`}
-                    >
-                      {line.text}
+                  {mergeDisplayParagraphs(block).map((paragraph, paragraphIndex) => (
+                    <p key={`${paragraph}-${paragraphIndex}`} className="text-base leading-8 text-white/72">
+                      {paragraph}
                     </p>
                   ))}
                 </div>
@@ -238,6 +235,26 @@ function chunkArticleLines(lines: ArticleTextLine[], size: number) {
   }
 
   return chunks;
+}
+
+function mergeDisplayParagraphs(lines: ArticleTextLine[]) {
+  const paragraphs: string[] = [];
+  let currentParagraph = "";
+
+  lines.forEach((line) => {
+    currentParagraph = currentParagraph ? `${currentParagraph} ${line.text}` : line.text;
+
+    if (line.paragraphEnd) {
+      paragraphs.push(currentParagraph);
+      currentParagraph = "";
+    }
+  });
+
+  if (currentParagraph) {
+    paragraphs.push(currentParagraph);
+  }
+
+  return paragraphs;
 }
 
 function ArticleImage({ image, title, index }: { image: string; title: string; index: number }) {
