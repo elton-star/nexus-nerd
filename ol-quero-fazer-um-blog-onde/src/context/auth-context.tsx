@@ -24,6 +24,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const storageKey = "nexus-nerd-users";
+const sessionStorageKey = "nexus-nerd-session";
 const defaultAdmin: StoredUser = {
   id: "admin-nexus",
   name: "adminnexus",
@@ -55,11 +56,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
+    const savedSessionId = window.localStorage.getItem(sessionStorageKey);
 
     if (saved) {
       const parsed = JSON.parse(saved) as StoredUser[];
       const hasDefaultAdmin = parsed.some((candidate) => candidate.name === defaultAdmin.name);
-      setStoredUsers(hasDefaultAdmin ? parsed : [defaultAdmin, ...parsed]);
+      const availableUsers = hasDefaultAdmin ? parsed : [defaultAdmin, ...parsed];
+      setStoredUsers(availableUsers);
+
+      if (savedSessionId) {
+        const savedUser = availableUsers.find((candidate) => candidate.id === savedSessionId);
+
+        if (savedUser) {
+          setUser(withoutPassword(savedUser));
+        }
+      }
     } else {
       setStoredUsers([defaultAdmin]);
     }
@@ -92,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUser(withoutPassword(existing));
+        window.localStorage.setItem(sessionStorageKey, existing.id);
 
         return {
           ok: true,
@@ -132,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setStoredUsers((current) => [created, ...current]);
         setUser(withoutPassword(created));
+        window.localStorage.setItem(sessionStorageKey, created.id);
 
         return {
           ok: true,
@@ -145,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (existing) {
           setUser(withoutPassword(existing));
+          window.localStorage.setItem(sessionStorageKey, existing.id);
         } else {
           const created: StoredUser = {
             id: crypto.randomUUID(),
@@ -156,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           setStoredUsers((current) => [created, ...current]);
           setUser(withoutPassword(created));
+          window.localStorage.setItem(sessionStorageKey, created.id);
         }
 
         return {
@@ -163,7 +178,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           message: "Conta Google conectada."
         };
       },
-      logout: () => setUser(null),
+      logout: () => {
+        window.localStorage.removeItem(sessionStorageKey);
+        setUser(null);
+      },
       updateRole: (id: string, role: UserRole) => {
         setStoredUsers((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, role } : candidate)));
         setUser((current) => (current?.id === id ? { ...current, role } : current));
