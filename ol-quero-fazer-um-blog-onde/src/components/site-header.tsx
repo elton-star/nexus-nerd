@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, Search, Shield, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { categories } from "@/lib/categories";
 import { useAuth } from "@/context/auth-context";
 
@@ -127,9 +128,22 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {open ? (
-        <div className="border-t border-white/10 bg-obsidian px-4 py-4 lg:hidden">
-          <div className="grid gap-2">
+      <AnimatePresence>
+        {open ? (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden border-t border-white/10 bg-obsidian lg:hidden"
+        >
+          <motion.div
+            initial={{ y: -14 }}
+            animate={{ y: 0 }}
+            exit={{ y: -10 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+            className="grid gap-2 px-4 py-4"
+          >
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -175,9 +189,10 @@ export function SiteHeader() {
                 </Link>
               </div>
             )}
-          </div>
-        </div>
-      ) : null}
+          </motion.div>
+        </motion.div>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }
