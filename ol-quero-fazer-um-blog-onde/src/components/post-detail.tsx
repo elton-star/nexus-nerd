@@ -83,9 +83,14 @@ export function PostDetail({ post }: { post: Post }) {
           <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
             {articleBlocks.map((block, blockIndex) => (
               <div key={`block-${blockIndex}`} className="not-prose">
-                <div className="prose prose-invert max-w-none prose-p:text-white/72 prose-p:leading-8">
+                <div className="grid gap-5">
                   {block.map((line, lineIndex) => (
-                    <p key={`${line}-${lineIndex}`}>{line}</p>
+                    <p
+                      key={`${line.text}-${lineIndex}`}
+                      className={`text-base leading-8 text-white/72 ${line.paragraphEnd ? "mb-5" : "mb-0"}`}
+                    >
+                      {line.text}
+                    </p>
                   ))}
                 </div>
                 {post.gallery?.[blockIndex] ? (
@@ -111,11 +116,6 @@ export function PostDetail({ post }: { post: Post }) {
                 </a>
               </div>
             ) : null}
-            <p>
-              No Nexus Nerd, a análise olha para a experiência do fã: o impacto nas comunidades, as possibilidades de
-              continuidade e a forma como cada lançamento conversa com outras mídias. Esse é o tipo de assunto que cresce
-              depois da estreia, quando teorias, leituras e detalhes começam a se conectar.
-            </p>
           </div>
 
           <aside className="glass h-fit rounded-lg p-4">
@@ -191,24 +191,47 @@ export function PostDetail({ post }: { post: Post }) {
   );
 }
 
-function buildArticleLines(content: string) {
-  const manualLines = content
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
+type ArticleTextLine = {
+  text: string;
+  paragraphEnd: boolean;
+};
 
-  if (manualLines.length > 1) {
-    return manualLines;
-  }
-
+function buildArticleLines(content: string): ArticleTextLine[] {
   return content
-    .split(/(?<=[.!?])\s+/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .flatMap((paragraph) => wrapParagraph(paragraph, 78));
 }
 
-function chunkArticleLines(lines: string[], size: number) {
-  const chunks: string[][] = [];
+function wrapParagraph(paragraph: string, maxCharacters: number): ArticleTextLine[] {
+  const words = paragraph.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (nextLine.length > maxCharacters && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = nextLine;
+    }
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.map((text, index) => ({
+    text,
+    paragraphEnd: index === lines.length - 1
+  }));
+}
+
+function chunkArticleLines(lines: ArticleTextLine[], size: number) {
+  const chunks: ArticleTextLine[][] = [];
 
   for (let index = 0; index < lines.length; index += size) {
     chunks.push(lines.slice(index, index + size));

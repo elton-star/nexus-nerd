@@ -234,7 +234,7 @@ export default function AdminPage() {
               onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
               required
               placeholder="Conteúdo do post: escreva em linhas/parágrafos. A cada 13 linhas, uma imagem interna será inserida automaticamente."
-              className="min-h-32 rounded-md border border-white/10 bg-black/30 p-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
+              className="min-h-64 rounded-md border border-white/10 bg-black/30 p-4 leading-7 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <div className="rounded-lg border border-white/10 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
