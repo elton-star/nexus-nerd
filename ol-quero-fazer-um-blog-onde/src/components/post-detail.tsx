@@ -86,9 +86,15 @@ export function PostDetail({ post }: { post: Post }) {
               <div key={`block-${blockIndex}`} className="not-prose">
                 <div className="grid gap-5">
                   {mergeDisplayParagraphs(block).map((paragraph, paragraphIndex) => (
-                    <p key={`${paragraph}-${paragraphIndex}`} className="text-base leading-8 text-white/72">
-                      {paragraph}
-                    </p>
+                    paragraph.kind === "heading" ? (
+                      <h2 key={`${paragraph.text}-${paragraphIndex}`} className="pt-3 text-2xl font-black leading-tight text-white">
+                        {paragraph.text}
+                      </h2>
+                    ) : (
+                      <p key={`${paragraph.text}-${paragraphIndex}`} className="text-base leading-8 text-white/72">
+                        {paragraph.text}
+                      </p>
+                    )
                   ))}
                 </div>
                 {post.gallery?.[blockIndex] ? (
@@ -192,6 +198,7 @@ export function PostDetail({ post }: { post: Post }) {
 type ArticleTextLine = {
   text: string;
   paragraphEnd: boolean;
+  kind: "paragraph" | "heading";
 };
 
 function buildArticleLines(content: string): ArticleTextLine[] {
@@ -199,7 +206,19 @@ function buildArticleLines(content: string): ArticleTextLine[] {
     .split(/\n+/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
-    .flatMap((paragraph) => wrapParagraph(paragraph, 78));
+    .flatMap((paragraph) => {
+      if (paragraph.startsWith("##")) {
+        return [
+          {
+            text: paragraph.replace(/^##\s*/, ""),
+            paragraphEnd: true,
+            kind: "heading" as const
+          }
+        ];
+      }
+
+      return wrapParagraph(paragraph, 78);
+    });
 }
 
 function wrapParagraph(paragraph: string, maxCharacters: number): ArticleTextLine[] {
@@ -224,7 +243,8 @@ function wrapParagraph(paragraph: string, maxCharacters: number): ArticleTextLin
 
   return lines.map((text, index) => ({
     text,
-    paragraphEnd: index === lines.length - 1
+    paragraphEnd: index === lines.length - 1,
+    kind: "paragraph" as const
   }));
 }
 
@@ -239,20 +259,30 @@ function chunkArticleLines(lines: ArticleTextLine[], size: number) {
 }
 
 function mergeDisplayParagraphs(lines: ArticleTextLine[]) {
-  const paragraphs: string[] = [];
+  const paragraphs: Array<{ text: string; kind: "paragraph" | "heading" }> = [];
   let currentParagraph = "";
 
   lines.forEach((line) => {
+    if (line.kind === "heading") {
+      if (currentParagraph) {
+        paragraphs.push({ text: currentParagraph, kind: "paragraph" });
+        currentParagraph = "";
+      }
+
+      paragraphs.push({ text: line.text, kind: "heading" });
+      return;
+    }
+
     currentParagraph = currentParagraph ? `${currentParagraph} ${line.text}` : line.text;
 
     if (line.paragraphEnd) {
-      paragraphs.push(currentParagraph);
+      paragraphs.push({ text: currentParagraph, kind: "paragraph" });
       currentParagraph = "";
     }
   });
 
   if (currentParagraph) {
-    paragraphs.push(currentParagraph);
+    paragraphs.push({ text: currentParagraph, kind: "paragraph" });
   }
 
   return paragraphs;
