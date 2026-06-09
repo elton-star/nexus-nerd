@@ -88,11 +88,15 @@ export function PostDetail({ post }: { post: Post }) {
                   {mergeDisplayParagraphs(block).map((paragraph, paragraphIndex) => (
                     paragraph.kind === "heading" ? (
                       <h2 key={`${paragraph.text}-${paragraphIndex}`} className="pt-3 text-2xl font-black leading-tight text-white">
-                        {paragraph.text}
+                        {renderInlineStrong(paragraph.text)}
                       </h2>
+                    ) : paragraph.kind === "strong" ? (
+                      <p key={`${paragraph.text}-${paragraphIndex}`} className="text-base font-black leading-8 text-white">
+                        {renderInlineStrong(paragraph.text)}
+                      </p>
                     ) : (
                       <p key={`${paragraph.text}-${paragraphIndex}`} className="text-base leading-8 text-white/72">
-                        {paragraph.text}
+                        {renderInlineStrong(paragraph.text)}
                       </p>
                     )
                   ))}
@@ -198,7 +202,7 @@ export function PostDetail({ post }: { post: Post }) {
 type ArticleTextLine = {
   text: string;
   paragraphEnd: boolean;
-  kind: "paragraph" | "heading";
+  kind: "paragraph" | "heading" | "strong";
 };
 
 function buildArticleLines(content: string): ArticleTextLine[] {
@@ -207,17 +211,27 @@ function buildArticleLines(content: string): ArticleTextLine[] {
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
     .flatMap((paragraph) => {
-      if (paragraph.startsWith("##")) {
+      if (/^#+\s*/.test(paragraph)) {
         return [
           {
-            text: paragraph.replace(/^##\s*/, ""),
+            text: cleanFormattingMarkers(paragraph.replace(/^#+\s*/, "")),
             paragraphEnd: true,
             kind: "heading" as const
           }
         ];
       }
 
-      return wrapParagraph(paragraph, 78);
+      if (/^\*+\s*/.test(paragraph)) {
+        return [
+          {
+            text: cleanFormattingMarkers(paragraph.replace(/^\*+\s*/, "")),
+            paragraphEnd: true,
+            kind: "strong" as const
+          }
+        ];
+      }
+
+      return wrapParagraph(cleanFormattingMarkers(paragraph), 78);
     });
 }
 
@@ -259,17 +273,17 @@ function chunkArticleLines(lines: ArticleTextLine[], size: number) {
 }
 
 function mergeDisplayParagraphs(lines: ArticleTextLine[]) {
-  const paragraphs: Array<{ text: string; kind: "paragraph" | "heading" }> = [];
+  const paragraphs: Array<{ text: string; kind: "paragraph" | "heading" | "strong" }> = [];
   let currentParagraph = "";
 
   lines.forEach((line) => {
-    if (line.kind === "heading") {
+    if (line.kind === "heading" || line.kind === "strong") {
       if (currentParagraph) {
         paragraphs.push({ text: currentParagraph, kind: "paragraph" });
         currentParagraph = "";
       }
 
-      paragraphs.push({ text: line.text, kind: "heading" });
+      paragraphs.push({ text: line.text, kind: line.kind });
       return;
     }
 
@@ -286,6 +300,29 @@ function mergeDisplayParagraphs(lines: ArticleTextLine[]) {
   }
 
   return paragraphs;
+}
+
+function cleanFormattingMarkers(text: string) {
+  return text
+    .replace(/^([#*]+)\s*/, "")
+    .replace(/\s*([#*]+)$/, "")
+    .trim();
+}
+
+function renderInlineStrong(text: string) {
+  const parts = text.split(/([#*]{1,6}[^#*]+[#*]{1,6})/g);
+
+  return parts.map((part, index) => {
+    if (/^[#*]{1,6}[^#*]+[#*]{1,6}$/.test(part)) {
+      return (
+        <strong key={`${part}-${index}`} className="font-black text-white">
+          {cleanFormattingMarkers(part)}
+        </strong>
+      );
+    }
+
+    return part;
+  });
 }
 
 function ArticleImage({ image, title, index }: { image: string; title: string; index: number }) {
