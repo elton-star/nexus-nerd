@@ -96,6 +96,24 @@ function toSupabase(post: Post) {
   };
 }
 
+async function notifyNewPost(post: Post) {
+  try {
+    await fetch("/api/push/notify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: "Post novo no Nexus Nerd",
+        body: post.title,
+        url: `/artigo/${post.slug}`
+      })
+    });
+  } catch (error) {
+    console.error("Could not send push notification", error);
+  }
+}
+
 export function PostsProvider({ children }: { children: React.ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(seedPosts);
   const [hydrated, setHydrated] = useState(false);
@@ -155,6 +173,8 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
             console.error("Could not publish post to Supabase", error);
           }
         }
+
+        await notifyNewPost(post);
       },
       updatePost: async (id: string, post: Partial<Post>) => {
         setPosts((current) => current.map((candidate) => (candidate.id === id ? { ...candidate, ...post } : candidate)));

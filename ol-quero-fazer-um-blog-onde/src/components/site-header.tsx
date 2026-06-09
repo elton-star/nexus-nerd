@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { categories } from "@/lib/categories";
 import { useAuth } from "@/context/auth-context";
+import { PushNotificationButton } from "@/components/push-notification-button";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -52,6 +53,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <PushNotificationButton />
           <Link
             href="/busca"
             className="grid h-10 w-10 place-items-center rounded-md border border-white/10 bg-white/6 text-white/78 transition hover:bg-white/12"
@@ -169,6 +171,9 @@ export function SiteHeader() {
             </div>
             {user ? (
               <div className="grid gap-2 pt-2">
+                <div className="flex justify-center">
+                  <PushNotificationButton />
+                </div>
                 <Link onClick={() => setOpen(false)} className="rounded-md bg-nexus-500 p-3 text-center text-sm font-black" href="/perfil">
                   {user.avatar} Perfil
                 </Link>

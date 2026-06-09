@@ -24,6 +24,25 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anon
 
 Sem Supabase, os posts ficam salvos apenas no navegador de quem publicou.
 
+## Notificações push
+
+Para avisar celulares quando um post novo for publicado, configure também:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=sua_vapid_public_key
+VAPID_PRIVATE_KEY=sua_vapid_private_key
+VAPID_SUBJECT=mailto:seu-email@dominio.com
+```
+
+Gere as chaves VAPID com:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Depois rode novamente o SQL de `supabase-schema.sql` para criar `push_subscriptions`.
+
 ## Inclui
 
 - Home cinematográfica com carrosséis e cards estilo streaming.
