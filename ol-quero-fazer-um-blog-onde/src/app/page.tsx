@@ -11,6 +11,7 @@ export default function HomePage() {
   const { posts } = usePosts();
   const sortedPosts = posts.slice().sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime());
   const latestPosts = sortedPosts.slice(0, 3);
+  const latestNews = sortedPosts.filter((post) => post.category === "noticias").slice(0, 3);
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const trending = sortedPosts.filter((post) => new Date(post.date).getTime() >= weekAgo);
   const featured = sortedPosts[0];
@@ -44,7 +45,7 @@ export default function HomePage() {
       <ContentRow title="DC Comics" posts={posts.filter((post) => post.category === "dc-comics")} />
       <ContentRow title="Mangás" posts={posts.filter((post) => post.category === "mangas")} />
       <ContentRow title="Teorias populares" posts={posts.filter((post) => post.category === "teorias")} />
-      <ContentRow title="Últimas notícias" posts={sortedPosts.slice(0, 8)} />
+      <ContentRow title="Últimas notícias" posts={latestNews} />
       <Newsletter />
     </>
   );
