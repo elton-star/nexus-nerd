@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { posts as seedPosts } from "@/lib/posts";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/types";
+import { calculateReadTime } from "@/lib/read-time";
 
 type PostsContextValue = {
   posts: Post[];
@@ -87,7 +88,7 @@ function toSupabase(post: Post) {
     affiliate_link: post.affiliateLink ?? null,
     author: post.author,
     date: post.date,
-    read_time: post.readTime,
+    read_time: calculateReadTime(post.content),
     likes: post.likes,
     comments: post.comments,
     featured: post.featured ?? false,

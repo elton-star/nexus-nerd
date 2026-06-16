@@ -6,6 +6,7 @@ import { Lightbulb, Send } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { usePosts } from "@/context/posts-context";
 import type { Post } from "@/types";
+import { calculateReadTime } from "@/lib/read-time";
 
 const defaultCover =
   "https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1600&q=80";
@@ -44,7 +45,7 @@ export function TheoryPublisher() {
       cover: String(form.get("cover") ?? "").trim() || defaultCover,
       author: user.name,
       date: new Date().toISOString(),
-      readTime: "4 min",
+      readTime: calculateReadTime(String(form.get("content") ?? "")),
       likes: 0,
       comments: 0,
       tags: ["Teorias", "Comunidade"]

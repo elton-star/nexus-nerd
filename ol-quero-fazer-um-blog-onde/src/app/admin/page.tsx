@@ -6,6 +6,7 @@ import { categories } from "@/lib/categories";
 import type { CategorySlug, Post, UserRole } from "@/types";
 import { useAuth } from "@/context/auth-context";
 import { usePosts } from "@/context/posts-context";
+import { calculateReadTime } from "@/lib/read-time";
 
 const emptyDraft = {
   title: "",
@@ -46,6 +47,7 @@ export default function AdminPage() {
         content: draft.content,
         category: draft.category,
         cover: draft.cover,
+        readTime: calculateReadTime(draft.content),
         gallery: draft.gallery
           .map((image) => image.trim())
           .filter(Boolean),
@@ -66,7 +68,7 @@ export default function AdminPage() {
                 affiliateLink: draft.affiliateLink.trim() || undefined,
                 author: user?.name ?? "Editor Nexus",
         date: new Date().toISOString(),
-        readTime: "4 min",
+        readTime: calculateReadTime(draft.content),
         likes: 0,
         comments: 0,
         tags: [draft.category]

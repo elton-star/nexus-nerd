@@ -10,6 +10,7 @@ import { ContentRow } from "@/components/content-row";
 import { usePosts } from "@/context/posts-context";
 import { useAuth } from "@/context/auth-context";
 import { RelativeTime } from "@/components/relative-time";
+import { calculateReadTime } from "@/lib/read-time";
 
 export function PostDetail({ post }: { post: Post }) {
   const [likes, setLikes] = useState(post.likes);
@@ -74,7 +75,7 @@ export function PostDetail({ post }: { post: Post }) {
               <span>{post.author}</span>
               <RelativeTime date={post.date} />
               <span className="flex items-center gap-1">
-                <Timer size={16} /> {post.readTime}
+                <Timer size={16} /> {calculateReadTime(post.content)}
               </span>
             </div>
           </div>

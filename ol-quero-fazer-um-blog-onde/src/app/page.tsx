@@ -9,9 +9,11 @@ import { usePosts } from "@/context/posts-context";
 
 export default function HomePage() {
   const { posts } = usePosts();
-  const featured = posts.find((post) => post.featured) ?? posts[0];
-  const trending = posts.filter((post) => post.trending);
-  const featuredPosts = posts.filter((post) => post.featured);
+  const sortedPosts = posts.slice().sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime());
+  const latestPosts = sortedPosts.slice(0, 3);
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const trending = sortedPosts.filter((post) => new Date(post.date).getTime() >= weekAgo);
+  const featured = sortedPosts[0];
 
   if (!featured) {
     return (
@@ -26,23 +28,23 @@ export default function HomePage() {
 
   return (
     <>
-      <Hero posts={posts.slice(0, 6)} post={featured} />
+      <Hero posts={sortedPosts.slice(0, 6)} post={featured} />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <SectionHeading title="Posts em destaque" kicker="Prime Video Geek" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {(featuredPosts.length ? featuredPosts : posts.slice(0, 3)).map((post) => (
+          {latestPosts.map((post) => (
             <PostCard key={post.id} post={post} large />
           ))}
         </div>
       </section>
 
-      <ContentRow title="Trending da semana" kicker="Mais comentados" posts={trending.length ? trending : posts.slice(0, 6)} />
+      <ContentRow title="Trending da semana" kicker="Publicados nos últimos 7 dias" posts={trending} />
       <ContentRow title="Marvel" posts={posts.filter((post) => post.category === "marvel")} />
       <ContentRow title="DC Comics" posts={posts.filter((post) => post.category === "dc-comics")} />
       <ContentRow title="Mangás" posts={posts.filter((post) => post.category === "mangas")} />
       <ContentRow title="Teorias populares" posts={posts.filter((post) => post.category === "teorias")} />
-      <ContentRow title="Últimas notícias" posts={posts.slice(0, 8)} />
+      <ContentRow title="Últimas notícias" posts={sortedPosts.slice(0, 8)} />
       <Newsletter />
     </>
   );
