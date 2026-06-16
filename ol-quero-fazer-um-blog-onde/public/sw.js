@@ -4,7 +4,8 @@ self.addEventListener("push", (event) => {
     : {
         title: "Nexus Nerd",
         body: "Tem post novo no blog.",
-        url: "/"
+        url: "/",
+        image: "/nexus-nerd-logo.png"
       };
 
   event.waitUntil(
@@ -12,6 +13,16 @@ self.addEventListener("push", (event) => {
       body: data.body || "Tem post novo no blog.",
       icon: "/nexus-nerd-logo.png",
       badge: "/nexus-nerd-logo.png",
+      image: data.image || "/nexus-nerd-logo.png",
+      tag: data.tag || "nexus-nerd-new-post",
+      renotify: true,
+      vibrate: [120, 60, 120],
+      actions: [
+        {
+          action: "open",
+          title: "Ler agora"
+        }
+      ],
       data: {
         url: data.url || "/"
       }

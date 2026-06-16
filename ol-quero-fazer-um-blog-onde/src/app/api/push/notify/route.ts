@@ -12,6 +12,8 @@ type NotifyBody = {
   title?: string;
   body?: string;
   url?: string;
+  image?: string;
+  tag?: string;
 };
 
 function getSupabaseAdmin() {
@@ -53,9 +55,11 @@ export async function POST(request: Request) {
   }
 
   const payload = JSON.stringify({
-    title: body.title || "Post novo no Nexus Nerd",
+    title: body.title || "Nexus Nerd",
     body: body.body || "Tem artigo novo para ler agora.",
-    url: body.url || "/"
+    url: body.url || "/",
+    image: body.image || "/nexus-nerd-logo.png",
+    tag: body.tag || "nexus-nerd-new-post"
   });
 
   const rows = (data ?? []) as PushRow[];

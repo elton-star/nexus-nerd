@@ -105,9 +105,11 @@ async function notifyNewPost(post: Post) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        title: "Post novo no Nexus Nerd",
+        title: "Nexus Nerd | Post novo",
         body: post.title,
-        url: `/artigo/${post.slug}`
+        url: `/artigo/${post.slug}`,
+        image: post.cover || "/nexus-nerd-logo.png",
+        tag: `nexus-nerd-${post.slug}`
       })
     });
   } catch (error) {

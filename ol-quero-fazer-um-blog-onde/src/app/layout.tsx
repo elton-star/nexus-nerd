@@ -24,7 +24,9 @@ export const metadata: Metadata = {
     description: "Uma experiência premium para fãs de cultura nerd e geek.",
     type: "website",
     locale: "pt_BR"
-  }
+  },
+  manifest: "/manifest.json",
+  themeColor: "#8b3dff"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
