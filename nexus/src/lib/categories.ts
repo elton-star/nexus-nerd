@@ -1,4 +1,4 @@
-import type { CategorySlug } from "@/types";
+﻿import type { CategorySlug } from "@/types";
 
 export const categories: Array<{ slug: CategorySlug; label: string; description: string }> = [
   {
