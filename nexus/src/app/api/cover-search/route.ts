@@ -12,38 +12,38 @@ type CoverResult = {
 };
 
 const categoryTerms: Record<string, string> = {
-  noticias: "geek pop culture news",
-  marvel: "Marvel superhero comic cinematic",
-  "dc-comics": "DC Comics superhero cinematic",
-  mangas: "manga japanese comic art",
-  animes: "anime japanese animation cinematic",
-  games: "video game cinematic console",
-  "filmes-series": "movie series streaming cinematic",
-  teorias: "mystery theory neon cinematic"
+  noticias: "geek culture",
+  marvel: "Marvel superhero cosplay comic",
+  "dc-comics": "DC Comics superhero cosplay comic",
+  mangas: "manga anime illustration",
+  animes: "anime illustration",
+  games: "video game character",
+  "filmes-series": "movie series character",
+  teorias: "mystery geek theory"
 };
 
-const titleTerms: Array<{ match: RegExp; term: string }> = [
-  { match: /demolidor|daredevil/i, term: "Daredevil Marvel superhero comic dark city" },
-  { match: /justiceiro|punisher/i, term: "Punisher Marvel antihero comic dark action" },
-  { match: /homem[-\s]?aranha|spider[-\s]?man/i, term: "Spider Man Marvel superhero comic city" },
-  { match: /batman|cavaleiro das trevas/i, term: "Batman DC superhero comic Gotham dark" },
-  { match: /superman/i, term: "Superman DC superhero comic cinematic sky" },
-  { match: /mulher[-\s]?maravilha|wonder woman/i, term: "Wonder Woman DC superhero comic warrior" },
-  { match: /coringa|joker/i, term: "Joker DC villain comic dark city" },
-  { match: /elektra/i, term: "Elektra Marvel assassin comic red" },
-  { match: /wolverine|logan/i, term: "Wolverine Marvel superhero comic claws" },
-  { match: /deadpool/i, term: "Deadpool Marvel antihero comic action" },
-  { match: /vingadores|avengers/i, term: "Avengers Marvel superhero team cinematic" },
-  { match: /x[-\s]?men/i, term: "X Men Marvel superhero team comic" },
-  { match: /naruto/i, term: "Naruto anime manga ninja" },
-  { match: /one piece/i, term: "One Piece anime manga pirate sea" },
-  { match: /dragon ball|goku/i, term: "Dragon Ball anime manga energy" },
-  { match: /jujutsu|gojo|sukuna/i, term: "Jujutsu Kaisen anime manga dark fantasy" },
-  { match: /demon slayer|kimetsu/i, term: "Demon Slayer anime manga sword" },
-  { match: /attack on titan|shingeki/i, term: "Attack on Titan anime manga dark fantasy" },
-  { match: /playstation|ps5/i, term: "PlayStation 5 controller gaming" },
-  { match: /xbox/i, term: "Xbox controller gaming" },
-  { match: /nintendo|switch/i, term: "Nintendo Switch gaming console" }
+const titleTerms: Array<{ match: RegExp; terms: string[] }> = [
+  { match: /homem[-\s]?aranha|spider[-\s]?man/i, terms: ["Spider-Man cosplay", "Spider Man superhero red blue suit", "spiderman comic cosplay"] },
+  { match: /demolidor|daredevil/i, terms: ["Daredevil cosplay", "Daredevil superhero red suit", "Daredevil Marvel fan art"] },
+  { match: /justiceiro|punisher/i, terms: ["Punisher cosplay", "Punisher skull superhero", "Punisher comic fan art"] },
+  { match: /batman|cavaleiro das trevas/i, terms: ["Batman cosplay", "Batman superhero dark suit", "Batman comic fan art"] },
+  { match: /superman/i, terms: ["Superman cosplay", "Superman superhero suit", "Superman comic fan art"] },
+  { match: /mulher[-\s]?maravilha|wonder woman/i, terms: ["Wonder Woman cosplay", "Wonder Woman superhero armor", "Wonder Woman comic fan art"] },
+  { match: /coringa|joker/i, terms: ["Joker cosplay", "Joker comic villain", "Joker fan art"] },
+  { match: /elektra/i, terms: ["Elektra cosplay", "Elektra comic red assassin", "Elektra fan art"] },
+  { match: /wolverine|logan/i, terms: ["Wolverine cosplay", "Wolverine claws superhero", "Wolverine comic fan art"] },
+  { match: /deadpool/i, terms: ["Deadpool cosplay", "Deadpool superhero red suit", "Deadpool comic fan art"] },
+  { match: /vingadores|avengers/i, terms: ["Avengers cosplay", "Marvel Avengers superhero team", "Avengers comic fan art"] },
+  { match: /x[-\s]?men/i, terms: ["X-Men cosplay", "X Men superhero team", "X Men comic fan art"] },
+  { match: /naruto/i, terms: ["Naruto cosplay", "Naruto anime ninja", "Naruto fan art"] },
+  { match: /one piece/i, terms: ["One Piece cosplay", "One Piece anime pirate", "One Piece fan art"] },
+  { match: /dragon ball|goku/i, terms: ["Dragon Ball cosplay", "Goku anime", "Dragon Ball fan art"] },
+  { match: /jujutsu|gojo|sukuna/i, terms: ["Jujutsu Kaisen cosplay", "Gojo cosplay", "Jujutsu Kaisen fan art"] },
+  { match: /demon slayer|kimetsu/i, terms: ["Demon Slayer cosplay", "Kimetsu no Yaiba anime", "Demon Slayer fan art"] },
+  { match: /attack on titan|shingeki/i, terms: ["Attack on Titan cosplay", "Shingeki no Kyojin anime", "Attack on Titan fan art"] },
+  { match: /playstation|ps5/i, terms: ["PlayStation 5 controller", "PS5 gaming setup"] },
+  { match: /xbox/i, terms: ["Xbox controller", "Xbox gaming setup"] },
+  { match: /nintendo|switch/i, terms: ["Nintendo Switch", "Nintendo gaming setup"] }
 ];
 
 const stopWords = new Set([
@@ -73,7 +73,7 @@ const stopWords = new Set([
   "sobre",
   "tudo",
   "porque",
-  "por que",
+  "por",
   "esta",
   "está",
   "foi",
@@ -94,32 +94,87 @@ function getKeywords(title: string) {
     .split(" ")
     .map((word) => word.trim())
     .filter((word) => word.length > 2 && !stopWords.has(word.toLowerCase()))
-    .slice(0, 6)
+    .slice(0, 5)
     .join(" ");
 }
 
-function getMappedTerm(title: string) {
-  return titleTerms.find((item) => item.match.test(title))?.term;
+function getMappedTerms(title: string) {
+  return titleTerms.find((item) => item.match.test(title))?.terms ?? [];
 }
 
 function buildQueries(title: string, category = "") {
   const cleanTitle = normalizeTitle(title);
   const keywords = getKeywords(cleanTitle);
-  const mappedTerm = getMappedTerm(cleanTitle);
-  const categoryTerm = categoryTerms[category] ?? "geek nerd culture cinematic";
+  const mappedTerms = getMappedTerms(cleanTitle);
+  const categoryTerm = categoryTerms[category] ?? "geek culture";
+  const genericCategory = category === "noticias" ? "" : categoryTerm;
 
   return Array.from(
     new Set(
       [
-        mappedTerm ? `${mappedTerm} ${categoryTerm}` : "",
-        keywords ? `${keywords} ${categoryTerm}` : "",
-        `${cleanTitle} ${categoryTerm}`,
+        ...mappedTerms,
+        ...mappedTerms.map((term) => `${term} ${genericCategory}`.trim()),
+        keywords ? `${keywords} ${genericCategory}`.trim() : "",
+        `${cleanTitle} ${genericCategory}`.trim(),
         categoryTerm
       ]
         .filter(Boolean)
         .map((query) => `${query} high resolution landscape`)
     )
   );
+}
+
+function scoreImage(text: string, query: string) {
+  const normalizedText = text.toLowerCase();
+  const words = query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3);
+
+  return words.reduce((score, word) => score + (normalizedText.includes(word) ? 1 : 0), 0);
+}
+
+async function searchOpenverse(query: string): Promise<CoverResult | null> {
+  const response = await fetch(
+    `https://api.openverse.org/v1/images/?q=${encodeURIComponent(query)}&aspect_ratio=wide,mature=false&page_size=12`,
+    {
+      next: {
+        revalidate: 3600
+      }
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = (await response.json()) as {
+    results?: Array<{
+      title?: string;
+      url?: string;
+      thumbnail?: string;
+      creator?: string | null;
+      source?: string;
+    }>;
+  };
+
+  const results = data.results ?? [];
+  const ranked = results
+    .filter((image) => image.url || image.thumbnail)
+    .sort((a, b) => scoreImage(`${b.title ?? ""} ${b.source ?? ""}`, query) - scoreImage(`${a.title ?? ""} ${a.source ?? ""}`, query));
+  const image = ranked[0];
+  const url = image?.url ?? image?.thumbnail;
+
+  if (!url) {
+    return null;
+  }
+
+  return {
+    url,
+    alt: image?.title ?? query,
+    credit: image?.creator ? `Openverse - ${image.creator}` : "Openverse"
+  };
 }
 
 async function searchPexels(query: string): Promise<CoverResult | null> {
@@ -157,7 +212,10 @@ async function searchPexels(query: string): Promise<CoverResult | null> {
     }>;
   };
 
-  const photo = data.photos?.[0];
+  const photos = data.photos ?? [];
+  const photo = photos
+    .filter((item) => item.src?.large2x || item.src?.original || item.src?.landscape)
+    .sort((a, b) => scoreImage(b.alt ?? "", query) - scoreImage(a.alt ?? "", query))[0];
   const url = photo?.src?.large2x ?? photo?.src?.original ?? photo?.src?.landscape;
 
   if (!url) {
@@ -208,7 +266,10 @@ async function searchUnsplash(query: string): Promise<CoverResult | null> {
     }>;
   };
 
-  const photo = data.results?.[0];
+  const results = data.results ?? [];
+  const photo = results
+    .filter((item) => item.urls?.regular || item.urls?.full)
+    .sort((a, b) => scoreImage(`${b.alt_description ?? ""} ${b.description ?? ""}`, query) - scoreImage(`${a.alt_description ?? ""} ${a.description ?? ""}`, query))[0];
   const url = photo?.urls?.regular ?? photo?.urls?.full;
 
   if (!url) {
@@ -233,7 +294,7 @@ export async function POST(request: Request) {
   const queries = buildQueries(title, body.category);
 
   for (const query of queries) {
-    const result = (await searchPexels(query)) ?? (await searchUnsplash(query));
+    const result = (await searchOpenverse(query)) ?? (await searchPexels(query)) ?? (await searchUnsplash(query));
 
     if (result) {
       return NextResponse.json({
@@ -245,7 +306,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
-      error: "Configure PEXELS_API_KEY ou UNSPLASH_ACCESS_KEY para buscar capas automaticamente."
+      error: "Não encontrei uma capa relacionada. Tente um título mais específico ou cole a URL manualmente."
     },
     { status: 400 }
   );
