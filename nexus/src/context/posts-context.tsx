@@ -176,13 +176,42 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const changedPost = fromSupabase(payload.new as SupabasePost);
-          setPosts((current) => {
-            const exists = current.some((post) => post.id === changedPost.id);
+          const changedRow = payload.new as Partial<SupabasePost>;
 
-            if (!exists) {
-              return [changedPost, ...current];
+          if (!changedRow.id) {
+            return;
+          }
+
+          setPosts((current) => {
+            const existingPost = current.find((post) => post.id === changedRow.id);
+
+            if (!existingPost) {
+              if (!changedRow.slug || !changedRow.title || !changedRow.content || !changedRow.category || !changedRow.cover) {
+                return current;
+              }
+
+              return [fromSupabase(changedRow as SupabasePost), ...current];
             }
+
+            const changedPost: Post = {
+              ...existingPost,
+              slug: changedRow.slug ?? existingPost.slug,
+              title: changedRow.title ?? existingPost.title,
+              excerpt: changedRow.excerpt ?? existingPost.excerpt,
+              content: changedRow.content ?? existingPost.content,
+              category: changedRow.category ?? existingPost.category,
+              cover: changedRow.cover ?? existingPost.cover,
+              gallery: changedRow.gallery ?? existingPost.gallery,
+              affiliateLink: changedRow.affiliate_link ?? existingPost.affiliateLink,
+              author: changedRow.author ?? existingPost.author,
+              date: changedRow.date ?? existingPost.date,
+              readTime: changedRow.read_time ?? existingPost.readTime,
+              likes: changedRow.likes ?? existingPost.likes,
+              comments: changedRow.comments ?? existingPost.comments,
+              featured: changedRow.featured ?? existingPost.featured,
+              trending: changedRow.trending ?? existingPost.trending,
+              tags: changedRow.tags ?? existingPost.tags
+            };
 
             return current.map((post) => (post.id === changedPost.id ? changedPost : post));
           });
@@ -355,6 +384,8 @@ export function usePosts() {
 
   return context;
 }
+
+
 
 
 
