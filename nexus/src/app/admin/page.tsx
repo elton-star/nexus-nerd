@@ -32,8 +32,8 @@ export default function AdminPage() {
   const stats = useMemo(
     () => [
       { label: "Posts", value: posts.length, icon: BarChart3 },
-      { label: "UsuÃ¡rios", value: users.length, icon: Users },
-      { label: "ComentÃ¡rios", value: posts.reduce((total, post) => total + post.comments, 0), icon: MessageSquare },
+      { label: "Usuários", value: users.length, icon: Users },
+      { label: "Comentários", value: posts.reduce((total, post) => total + post.comments, 0), icon: MessageSquare },
       { label: "Curtidas", value: posts.reduce((total, post) => total + post.likes, 0), icon: Plus }
     ],
     [posts, users.length]
@@ -239,7 +239,7 @@ export default function AdminPage() {
               value={draft.title}
               onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               required
-              placeholder="TÃ­tulo"
+              placeholder="Título"
               className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <textarea
@@ -297,13 +297,13 @@ export default function AdminPage() {
               value={draft.content}
               onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
               required
-              placeholder="ConteÃºdo do post: escreva em linhas/parÃ¡grafos. A cada 13 linhas, uma imagem interna serÃ¡ inserida automaticamente."
+              placeholder="Conteúdo do post: escreva em linhas/parágrafos. A cada 13 linhas, uma imagem interna será inserida automaticamente."
               className="min-h-64 rounded-md border border-white/10 bg-black/30 p-4 leading-7 outline-none placeholder:text-white/32 focus:border-nexus-400"
             />
             <div className="rounded-lg border border-white/10 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-black text-white">Imagens internas do conteÃºdo</p>
+                  <p className="text-sm font-black text-white">Imagens internas do conteúdo</p>
                   <p className="mt-1 text-xs leading-5 text-white/44">
                     A imagem 1 entra depois do primeiro bloco de 13 linhas.
                   </p>
@@ -344,7 +344,7 @@ export default function AdminPage() {
               </div>
             </div>
             <button className="rounded-md bg-nexus-500 px-5 py-3 text-sm font-black transition hover:bg-nexus-400">
-              {editingId ? "Salvar alteraÃ§Ãµes" : "Publicar"}
+              {editingId ? "Salvar alterações" : "Publicar"}
             </button>
           </div>
         </form>
@@ -381,7 +381,7 @@ export default function AdminPage() {
           </section>
 
           <section className="glass rounded-lg p-5">
-            <h2 className="mb-4 text-xl font-black">UsuÃ¡rios e permissÃµes</h2>
+            <h2 className="mb-4 text-xl font-black">Usuários e permissões</h2>
             <div className="grid gap-3">
               {users.map((member) => (
                 <div key={member.id} className="grid gap-3 rounded-lg border border-white/10 bg-white/5 p-4 md:grid-cols-[1fr_180px] md:items-center">
@@ -407,4 +407,6 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
 

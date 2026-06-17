@@ -41,7 +41,7 @@ export function PostDetail({ post }: { post: Post }) {
       {
         id: crypto.randomUUID(),
         postSlug: post.slug,
-        user: "VocÃª",
+        user: "Você",
         message,
         date: new Date().toISOString().slice(0, 10)
       },
@@ -114,7 +114,7 @@ export function PostDetail({ post }: { post: Post }) {
             {post.affiliateLink ? (
               <div className="not-prose my-8 rounded-lg border border-nexus-400/24 bg-nexus-500/12 p-5">
                 <p className="mb-4 text-sm font-semibold leading-6 text-white/70">
-                  Produto citado no artigo disponÃ­vel pelo link de afiliado Nexus.
+                  Produto citado no artigo disponível pelo link de afiliado Nexus.
                 </p>
                 <a
                   href={post.affiliateLink}
@@ -171,7 +171,7 @@ export function PostDetail({ post }: { post: Post }) {
 
         <section id="comentarios" className="mx-auto max-w-5xl px-4 pb-12 sm:px-6 lg:px-8">
           <div className="glass rounded-lg p-5 sm:p-6">
-            <h2 className="text-2xl font-black">ComentÃ¡rios</h2>
+            <h2 className="text-2xl font-black">Comentários</h2>
             <form onSubmit={addComment} className="mt-5 grid gap-3">
               <textarea
                 name="message"
@@ -341,5 +341,6 @@ function ArticleImage({ image, title, index }: { image: string; title: string; i
     </div>
   );
 }
+
 
 

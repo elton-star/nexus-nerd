@@ -257,7 +257,7 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
         if (readError) {
           return {
             ok: false,
-            message: "NÃ£o foi possÃ­vel consultar os posts do Supabase.",
+            message: "Não foi possível consultar os posts do Supabase.",
             migrated: 0,
             skipped: 0
           };
@@ -270,7 +270,7 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
         if (!postsToMigrate.length) {
           return {
             ok: true,
-            message: "Todos os posts antigos jÃ¡ existem no Supabase.",
+            message: "Todos os posts antigos já existem no Supabase.",
             migrated: 0,
             skipped
           };
@@ -281,7 +281,7 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
         if (insertError) {
           return {
             ok: false,
-            message: "NÃ£o foi possÃ­vel enviar os posts antigos para o Supabase.",
+            message: "Não foi possível enviar os posts antigos para o Supabase.",
             migrated: 0,
             skipped
           };
@@ -316,4 +316,5 @@ export function usePosts() {
 
   return context;
 }
+
 

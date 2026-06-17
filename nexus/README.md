@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Crie um arquivo `.env.local` com as chaves do Supabase caso queira conectar autenticaÃ§Ã£o e banco reais.
+Crie um arquivo `.env.local` com as chaves do Supabase caso queira conectar autenticação e banco reais.
 
 Para posts aparecerem para qualquer pessoa ao abrir o link pelo WhatsApp, configure o Supabase:
 
@@ -24,9 +24,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anon
 
 Sem Supabase, os posts ficam salvos apenas no navegador de quem publicou.
 
-## NotificaÃ§Ãµes push
+## Notificações push
 
-Para avisar celulares quando um post novo for publicado, configure tambÃ©m:
+Para avisar celulares quando um post novo for publicado, configure também:
 
 ```bash
 SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
@@ -59,10 +59,12 @@ O sistema tenta primeiro o Pexels e, se nao encontrar, tenta o Unsplash.
 
 ## Inclui
 
-- Home cinematogrÃ¡fica com carrossÃ©is e cards estilo streaming.
-- Categorias para NotÃ­cias, Marvel, DC Comics, MangÃ¡s, Animes, Games, Filmes e SÃ©ries e Teorias.
-- PÃ¡gina individual de artigo com curtidas e comentÃ¡rios.
-- Login/cadastro demo, perfil do usuÃ¡rio e painel admin.
-- CRUD local de posts, gerenciamento de usuÃ¡rios e estatÃ­sticas.
-- Arquivo `supabase-schema.sql` com tabelas e polÃ­ticas iniciais.
+- Home cinematográfica com carrosséis e cards estilo streaming.
+- Categorias para Notícias, Marvel, DC Comics, Mangás, Animes, Games, Filmes e Séries e Teorias.
+- Página individual de artigo com curtidas e comentários.
+- Login/cadastro demo, perfil do usuário e painel admin.
+- CRUD local de posts, gerenciamento de usuários e estatísticas.
+- Arquivo `supabase-schema.sql` com tabelas e políticas iniciais.
+
+
 
