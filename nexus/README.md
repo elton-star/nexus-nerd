@@ -44,19 +44,6 @@ npx web-push generate-vapid-keys
 Depois rode novamente o SQL de `supabase-schema.sql` para criar `push_subscriptions`.
 
 
-## Capas automaticas dos posts
-
-No painel admin, use o botao **Gerar capa** para buscar uma imagem pronta em alta qualidade pelo titulo e categoria do post.
-
-Configure pelo menos uma destas chaves no `.env.local`:
-
-```bash
-PEXELS_API_KEY=sua_chave_pexels
-UNSPLASH_ACCESS_KEY=sua_chave_unsplash
-```
-
-O sistema tenta primeiro o Pexels e, se nao encontrar, tenta o Unsplash.
-
 ## Inclui
 
 - Home cinematográfica com carrosséis e cards estilo streaming.
@@ -65,6 +52,7 @@ O sistema tenta primeiro o Pexels e, se nao encontrar, tenta o Unsplash.
 - Login/cadastro demo, perfil do usuário e painel admin.
 - CRUD local de posts, gerenciamento de usuários e estatísticas.
 - Arquivo `supabase-schema.sql` com tabelas e políticas iniciais.
+
 
 
 

@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { BarChart3, Edit3, ImagePlus, MessageSquare, Plus, Sparkles, Trash2, UploadCloud, Users } from "lucide-react";
+import { BarChart3, Edit3, ImagePlus, MessageSquare, Plus, Trash2, UploadCloud, Users } from "lucide-react";
 import { categories } from "@/lib/categories";
 import type { CategorySlug, Post, UserRole } from "@/types";
 import { useAuth } from "@/context/auth-context";
@@ -26,8 +26,6 @@ export default function AdminPage() {
   const [migrationStatus, setMigrationStatus] = useState("");
   const [migrationType, setMigrationType] = useState<"success" | "error">("success");
   const [migrationLoading, setMigrationLoading] = useState(false);
-  const [coverLoading, setCoverLoading] = useState(false);
-  const [coverStatus, setCoverStatus] = useState("");
 
   const stats = useMemo(
     () => [
@@ -114,46 +112,6 @@ export default function AdminPage() {
       ...current,
       gallery: current.gallery.filter((_, imageIndex) => imageIndex !== index)
     }));
-  }
-
-  async function generateCoverFromTitle() {
-    setCoverStatus("");
-
-    if (!draft.title.trim()) {
-      setCoverStatus("Digite o titulo do post antes de buscar uma capa.");
-      return;
-    }
-
-    setCoverLoading(true);
-
-    try {
-      const response = await fetch("/api/cover-search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          title: draft.title,
-          category: draft.category
-        })
-      });
-      const data = (await response.json()) as { url?: string; credit?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        setCoverStatus(data.error ?? "Nao foi possivel encontrar uma capa agora.");
-        return;
-      }
-
-      setDraft((current) => ({
-        ...current,
-        cover: data.url ?? current.cover
-      }));
-      setCoverStatus(data.credit ? `Capa encontrada: ${data.credit}` : "Capa encontrada.");
-    } catch {
-      setCoverStatus("Nao foi possivel buscar a capa. Tente novamente.");
-    } finally {
-      setCoverLoading(false);
-    }
   }
 
   async function migrateOldPosts() {
@@ -260,33 +218,13 @@ export default function AdminPage() {
                 </option>
               ))}
             </select>
-            <div className="grid gap-2">
-              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                <input
-                  value={draft.cover}
-                  onChange={(event) => setDraft((current) => ({ ...current, cover: event.target.value }))}
-                  required
-                  placeholder="URL da imagem"
-                  className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
-                />
-                <button
-                  type="button"
-                  onClick={generateCoverFromTitle}
-                  disabled={coverLoading}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-nexus-500 px-4 text-sm font-black transition hover:bg-nexus-400 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <Sparkles size={17} /> {coverLoading ? "Buscando..." : "Gerar capa"}
-                </button>
-              </div>
-              {coverStatus ? <p className="text-xs font-semibold text-white/52">{coverStatus}</p> : null}
-              {draft.cover ? (
-                <img
-                  src={draft.cover}
-                  alt="Previa da capa"
-                  className="aspect-video w-full rounded-md border border-white/10 object-cover"
-                />
-              ) : null}
-            </div>
+            <input
+              value={draft.cover}
+              onChange={(event) => setDraft((current) => ({ ...current, cover: event.target.value }))}
+              required
+              placeholder="URL da imagem"
+              className="min-h-12 rounded-md border border-white/10 bg-black/30 px-4 outline-none placeholder:text-white/32 focus:border-nexus-400"
+            />
             <input
               value={draft.affiliateLink}
               onChange={(event) => setDraft((current) => ({ ...current, affiliateLink: event.target.value }))}
@@ -407,6 +345,10 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
+
+
 
 
 
