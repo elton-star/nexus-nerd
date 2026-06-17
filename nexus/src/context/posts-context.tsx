@@ -159,6 +159,43 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
+    const supabaseClient = supabase;
+    const channel = supabaseClient
+      .channel("nexus-nerd-posts-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "posts" },
+        (payload) => {
+          if (payload.eventType === "DELETE") {
+            const deletedPost = payload.old as { id?: string };
+            setPosts((current) => current.filter((post) => post.id !== deletedPost.id));
+            return;
+          }
+
+          const changedPost = fromSupabase(payload.new as SupabasePost);
+          setPosts((current) => {
+            const exists = current.some((post) => post.id === changedPost.id);
+
+            if (!exists) {
+              return [changedPost, ...current];
+            }
+
+            return current.map((post) => (post.id === changedPost.id ? changedPost : post));
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseClient.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
     if (hydrated && !supabase) {
       window.localStorage.setItem(storageKey, JSON.stringify(posts));
     }
@@ -207,30 +244,32 @@ export function PostsProvider({ children }: { children: React.ReactNode }) {
         }
       },
       incrementPostCounter: async (id: string, field: "likes" | "comments", amount: number) => {
-        let nextValue = 0;
+        const currentPost = posts.find((candidate) => candidate.id === id);
+        const nextValue = Math.max(0, (currentPost?.[field] ?? 0) + amount);
 
         setPosts((current) =>
-          current.map((candidate) => {
-            if (candidate.id !== id) {
-              return candidate;
-            }
-
-            nextValue = Math.max(0, candidate[field] + amount);
-            return {
-              ...candidate,
-              [field]: nextValue
-            };
-          })
+          current.map((candidate) =>
+            candidate.id === id
+              ? {
+                  ...candidate,
+                  [field]: nextValue
+                }
+              : candidate
+          )
         );
 
         if (supabase) {
-          const { error } = await supabase.from("posts").update({ [field]: nextValue }).eq("id", id);
+          const { error } = await supabase
+            .from("posts")
+            .update({ [field]: nextValue, updated_at: new Date().toISOString() })
+            .eq("id", id);
 
           if (error) {
             console.error(`Could not update post ${field}`, error);
           }
         }
-      },      migrateLocalPostsToSupabase: async () => {
+      },
+      migrateLocalPostsToSupabase: async () => {
         if (!supabase) {
           return {
             ok: false,
@@ -316,5 +355,11 @@ export function usePosts() {
 
   return context;
 }
+
+
+
+
+
+
 
 

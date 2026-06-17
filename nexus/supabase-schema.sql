@@ -1,4 +1,4 @@
-create table if not exists profiles (
+﻿create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   role text not null default 'member' check (role in ('admin', 'editor', 'member')),
@@ -94,3 +94,11 @@ create policy "Users can update own profile" on profiles for update using (auth.
 create policy "Users can like" on likes for insert with check (auth.uid() = user_id);
 create policy "Users can remove own like" on likes for delete using (auth.uid() = user_id);
 create policy "Push subscriptions are service-managed" on push_subscriptions for all using (false) with check (false);
+-- Ativa atualizações em tempo real para curtidas, comentários e posts publicados.
+do $$
+begin
+  alter publication supabase_realtime add table posts;
+exception
+  when duplicate_object then null;
+end $$;
+

@@ -13,18 +13,18 @@ import { RelativeTime } from "@/components/relative-time";
 import { calculateReadTime } from "@/lib/read-time";
 
 export function PostDetail({ post }: { post: Post }) {
-  const [likes, setLikes] = useState(post.likes);
-  const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === post.slug));
-  const category = getCategory(post.category);
   const { posts, incrementPostCounter } = usePosts();
+  const currentPost = posts.find((candidate) => candidate.id === post.id) ?? post;
+  const [comments, setComments] = useState<Comment[]>(seedComments.filter((comment) => comment.postSlug === currentPost.slug));
+  const category = getCategory(currentPost.category);
   const { user, toggleLike, toggleFavorite, addRecentComment } = useAuth();
-  const liked = user?.likedPostIds.includes(post.id) ?? false;
-  const favorite = user?.favoritePostIds.includes(post.id) ?? false;
-  const articleBlocks = chunkArticleLines(buildArticleLines(post.content), 13);
+  const liked = user?.likedPostIds.includes(currentPost.id) ?? false;
+  const favorite = user?.favoritePostIds.includes(currentPost.id) ?? false;
+  const articleBlocks = chunkArticleLines(buildArticleLines(currentPost.content), 13);
 
   const related = useMemo(
-    () => posts.filter((candidate) => candidate.category === post.category && candidate.id !== post.id),
-    [post.category, post.id]
+    () => posts.filter((candidate) => candidate.category === currentPost.category && candidate.id !== currentPost.id),
+    [posts, currentPost.category, currentPost.id]
   );
 
   function addComment(event: FormEvent<HTMLFormElement>) {
@@ -36,11 +36,11 @@ export function PostDetail({ post }: { post: Post }) {
       return;
     }
 
-    incrementPostCounter(post.id, "comments", 1);
+    incrementPostCounter(currentPost.id, "comments", 1);
     setComments((current) => [
       {
         id: crypto.randomUUID(),
-        postSlug: post.slug,
+        postSlug: currentPost.slug,
         user: "Você",
         message,
         date: new Date().toISOString().slice(0, 10)
@@ -49,7 +49,7 @@ export function PostDetail({ post }: { post: Post }) {
     ]);
     addRecentComment({
       id: crypto.randomUUID(),
-      postSlug: post.slug,
+      postSlug: currentPost.slug,
       user: user?.name ?? "Visitante",
       message,
       date: new Date().toISOString().slice(0, 10)
@@ -63,20 +63,20 @@ export function PostDetail({ post }: { post: Post }) {
         <section
           className="relative min-h-[68vh] bg-cover bg-center"
           style={{
-            backgroundImage: `linear-gradient(90deg, rgba(5,2,10,.98), rgba(5,2,10,.58)), linear-gradient(0deg, #05020a 0%, transparent 38%), url(${post.cover})`
+            backgroundImage: `linear-gradient(90deg, rgba(5,2,10,.98), rgba(5,2,10,.58)), linear-gradient(0deg, #05020a 0%, transparent 38%), url(${currentPost.cover})`
           }}
         >
           <div className="mx-auto flex min-h-[68vh] max-w-5xl flex-col justify-end px-4 pb-16 pt-20 sm:px-6 lg:px-8">
-            <Link href={`/${post.category}`} className="mb-5 text-xs font-black uppercase text-nexus-400">
+            <Link href={`/${currentPost.category}`} className="mb-5 text-xs font-black uppercase text-nexus-400">
               {category?.label}
             </Link>
-            <h1 className="max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{post.title}</h1>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-white/68">{post.excerpt}</p>
+            <h1 className="max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{currentPost.title}</h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-white/68">{currentPost.excerpt}</p>
             <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold text-white/54">
-              <span>{post.author}</span>
-              <RelativeTime date={post.date} />
+              <span>{currentPost.author}</span>
+              <RelativeTime date={currentPost.date} />
               <span className="flex items-center gap-1">
-                <Timer size={16} /> {calculateReadTime(post.content)}
+                <Timer size={16} /> {calculateReadTime(currentPost.content)}
               </span>
             </div>
           </div>
@@ -103,21 +103,21 @@ export function PostDetail({ post }: { post: Post }) {
                     )
                   ))}
                 </div>
-                {post.gallery?.[blockIndex] ? (
-                  <ArticleImage image={post.gallery[blockIndex]} title={post.title} index={blockIndex} />
+                {currentPost.gallery?.[blockIndex] ? (
+                  <ArticleImage image={currentPost.gallery[blockIndex]} title={currentPost.title} index={blockIndex} />
                 ) : null}
               </div>
             ))}
-            {post.gallery?.slice(articleBlocks.length).map((image, index) => (
-              <ArticleImage key={image} image={image} title={post.title} index={index + articleBlocks.length} />
+            {currentPost.gallery?.slice(articleBlocks.length).map((image, index) => (
+              <ArticleImage key={image} image={image} title={currentPost.title} index={index + articleBlocks.length} />
             ))}
-            {post.affiliateLink ? (
+            {currentPost.affiliateLink ? (
               <div className="not-prose my-8 rounded-lg border border-nexus-400/24 bg-nexus-500/12 p-5">
                 <p className="mb-4 text-sm font-semibold leading-6 text-white/70">
                   Produto citado no artigo disponível pelo link de afiliado Nexus.
                 </p>
                 <a
-                  href={post.affiliateLink}
+                  href={currentPost.affiliateLink}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-nexus-500 px-5 text-sm font-black text-white shadow-glow transition hover:bg-nexus-400"
@@ -136,19 +136,18 @@ export function PostDetail({ post }: { post: Post }) {
                     return;
                   }
 
-                  const nextLiked = toggleLike(post.id);
+                  const nextLiked = toggleLike(currentPost.id);
                   const amount = nextLiked ? 1 : -1;
-                  incrementPostCounter(post.id, "likes", amount);
-                  setLikes((current) => Math.max(0, current + amount));
+                  incrementPostCounter(currentPost.id, "likes", amount);
                 }}
                 className={`flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 text-sm font-black transition ${
                   liked ? "bg-nexus-500 text-white" : "bg-white/6 text-white/78 hover:bg-white/12"
                 }`}
               >
-                <Heart size={17} fill={liked ? "currentColor" : "none"} /> {likes}
+                <Heart size={17} fill={liked ? "currentColor" : "none"} /> {currentPost.likes}
               </button>
               <button
-                onClick={() => toggleFavorite(post.id)}
+                onClick={() => toggleFavorite(currentPost.id)}
                 className={`flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 text-sm font-black transition ${
                   favorite ? "bg-nexus-500 text-white" : "bg-white/6 text-white/78 hover:bg-white/12"
                 }`}
@@ -341,6 +340,8 @@ function ArticleImage({ image, title, index }: { image: string; title: string; i
     </div>
   );
 }
+
+
 
 
 
