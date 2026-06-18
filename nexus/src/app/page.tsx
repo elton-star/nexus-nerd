@@ -43,7 +43,7 @@ export default function HomePage() {
       <ContentRow title="Trending da semana" kicker="Publicados nos últimos 7 dias" posts={trending} />
       <ContentRow title="Marvel" posts={posts.filter((post) => post.category === "marvel")} />
       <ContentRow title="DC Comics" posts={posts.filter((post) => post.category === "dc-comics")} />
-      <ContentRow title="Mangás" posts={posts.filter((post) => post.category === "mangas")} />
+      <ContentRow title="Ficção Científica" posts={posts.filter((post) => post.category === "ficcao-cientifica")} />
       <ContentRow title="Teorias populares" posts={posts.filter((post) => post.category === "teorias")} />
       <ContentRow title="Últimas notícias" posts={latestNews} />
       <Newsletter />
