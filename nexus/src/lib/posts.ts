@@ -52,7 +52,7 @@ export const posts: Post[] = [
     excerpt: "Histórias sombrias com mundos densos estão conquistando uma nova geração de leitores.",
     content:
       "A nova onda de dark fantasy combina ação brutal com construção de mundo minuciosa. O resultado são narrativas que conversam com games, animes e séries, criando comunidades que discutem teorias capítulo a capítulo.",
-    category: "mangas",
+    category: "ficcao-cientifica",
     cover: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=1600&q=80",
     gallery: [
       "https://images.unsplash.com/photo-1613376023733-0a73315d9b06?auto=format&fit=crop&w=1400&q=80",
