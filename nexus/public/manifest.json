@@ -1,0 +1,17 @@
+{
+  "name": "Nexus Nerd",
+  "short_name": "Nexus Nerd",
+  "description": "Portal geek sobre Marvel, DC, animes, mangás, games, filmes e teorias.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05020a",
+  "theme_color": "#8b3dff",
+  "icons": [
+    {
+      "src": "/nexus-nerd-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
