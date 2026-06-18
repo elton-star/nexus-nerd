@@ -17,9 +17,9 @@ export const categories: Array<{ slug: CategorySlug; label: string; description:
     description: "Batman, Superman, Liga da Justiça e eras do DCU."
   },
   {
-    slug: "mangas",
-    label: "Mangás",
-    description: "Lançamentos, arcos, rankings e clássicos japoneses."
+    slug: "ficcao-cientifica",
+    label: "Ficção Científica",
+    description: "Lançamentos, arcos, rankings e clássicos da ficção científica."
   },
   {
     slug: "animes",

@@ -2,7 +2,7 @@ export type CategorySlug =
   | "noticias"
   | "marvel"
   | "dc-comics"
-  | "mangas"
+  | "ficcao-cientifica"
   | "animes"
   | "games"
   | "filmes-series"
